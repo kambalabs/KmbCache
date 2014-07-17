@@ -1,0 +1,36 @@
+{
+    "name": "kambalabs/kmb-cache",
+    "description": "Kamba core module for managing cache",
+    "keywords": [
+        "kamba",
+        "module"
+    ],
+    "homepage": "http://github.com/kambalabs/KmbCache",
+    "license": "GPL V2",
+    "authors": [
+        {
+            "name": "Emmanuel Bouton",
+            "email": "goten4@gmail.com",
+            "homepage": "http://github.com/goten4",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "kambalabs/kmb-core": "dev-master",
+        "kambalabs/kmb-puppetdb": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/PHPUnit": "3.7.*",
+        "zendframework/zend-developer-tools": "dev-master",
+        "satooshi/php-coveralls": "dev-master"
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-0": {
+            "KmbCache": "src/"
+        },
+        "classmap": [
+            "./Module.php"
+        ]
+    }
+}
