@@ -17,6 +17,6 @@ class CacheManagerFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Zend\Cache\Storage\Adapter\Memory', $cacheManager->getCacheStorage());
         $this->assertInstanceOf('KmbPuppetDb\Service\NodeStatistics', $cacheManager->getNodeStatisticsService());
         $this->assertInstanceOf('KmbPuppetDb\Service\ReportStatistics', $cacheManager->getReportStatisticsService());
-        $this->assertInstanceOf('KmbCore\DateTimeFactory', $cacheManager->getDateTimeFactory());
+        $this->assertInstanceOf('KmbBase\DateTimeFactory', $cacheManager->getDateTimeFactory());
     }
 }

@@ -3,7 +3,7 @@ namespace KmbCacheTest\Controller;
 
 use KmbCache\Service\CacheManagerInterface;
 use KmbCacheTest\Bootstrap;
-use KmbCore\FakeDateTimeFactory;
+use KmbBase\FakeDateTimeFactory;
 use KmbPuppetDb\Model;
 use KmbPuppetDbTest\FakeHttpClient;
 use Zend\Cache\Storage\StorageInterface;

@@ -1,51 +1,51 @@
 <?php
-return array(
-    'router' => array(
-        'routes' => array(
-            'cache' => array(
+return [
+    'router' => [
+        'routes' => [
+            'cache' => [
                 'type'    => 'segment',
-                'options' => array(
+                'options' => [
                     'route'    => '/cache[/][:action][/:id]',
-                    'constraints' => array(
+                    'constraints' => [
                         'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
                         'id'     => '[0-9]+',
-                    ),
-                    'defaults' => array(
+                    ],
+                    'defaults' => [
                         'controller' => 'KmbCache\Controller\Index',
                         'action'     => 'index',
-                    ),
-                ),
-            ),
-        ),
-    ),
-    'translator' => array(
-        'translation_file_patterns' => array(
-            array(
+                    ],
+                ],
+            ],
+        ],
+    ],
+    'translator' => [
+        'translation_file_patterns' => [
+            [
                 'type'     => 'gettext',
                 'base_dir' => __DIR__ . '/../language',
                 'pattern'  => '%s.mo',
-            ),
-        ),
-    ),
-    'controllers' => array(
-        'invokables' => array(
+            ],
+        ],
+    ],
+    'controllers' => [
+        'invokables' => [
             'KmbCache\Controller\Index' => 'KmbCache\Controller\IndexController'
-        ),
-    ),
-    'view_manager' => array(
-        'strategies' => array(
+        ],
+    ],
+    'view_manager' => [
+        'strategies' => [
             'ViewJsonStrategy',
-        ),
-    ),
-    'service_manager' => array(
-        'abstract_factories' => array(
+        ],
+    ],
+    'service_manager' => [
+        'abstract_factories' => [
             'Zend\Cache\Service\StorageCacheAbstractServiceFactory',
             'Zend\Log\LoggerAbstractServiceFactory',
-        ),
-        'factories' => array(
+        ],
+        'factories' => [
             'KmbCache\Service\CacheManager' => 'KmbCache\Service\CacheManagerFactory',
             'KmbPuppetDb\Service\NodeStatistics' => 'KmbCache\Service\NodeStatisticsProxyFactory',
             'KmbPuppetDb\Service\ReportStatistics' => 'KmbCache\Service\ReportStatisticsProxyFactory',
-        ),
-    ),
-);
+        ],
+    ],
+];

@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "kambalabs/kmb-core": "dev-master",
+        "kambalabs/kmb-base": "dev-master",
         "kambalabs/kmb-puppetdb": "dev-master"
     },
     "require-dev": {

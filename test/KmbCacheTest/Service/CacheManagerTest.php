@@ -1,7 +1,7 @@
 <?php
 namespace KmbCacheTest\Service;
 
-use KmbCore\FakeDateTimeFactory;
+use KmbBase\FakeDateTimeFactory;
 use KmbPuppetDb\Model;
 use KmbCache\Exception\RuntimeException;
 use KmbCache\Service\CacheManager;
