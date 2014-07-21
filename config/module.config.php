@@ -48,4 +48,15 @@ return [
             'KmbPuppetDb\Service\ReportStatistics' => 'KmbCache\Service\ReportStatisticsProxyFactory',
         ],
     ],
+    'zfc_rbac' => [
+        'guards' => [
+            'ZfcRbac\Guard\ControllerGuard' => [
+                [
+                    'controller' => 'KmbCache\Controller\Index',
+                    'actions' => ['index', 'refresh'],
+                    'roles' => ['user']
+                ],
+            ]
+        ],
+    ],
 ];
