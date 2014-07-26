@@ -1,10 +1,10 @@
 <?php
-return array(
-    'caches' => array(
-        'CacheService' => array(
-            'adapter' => array(
+return [
+    'caches' => [
+        'CacheService' => [
+            'adapter' => [
                 'name' => 'memory',
-            ),
-        ),
-    ),
-);
+            ],
+        ],
+    ],
+];

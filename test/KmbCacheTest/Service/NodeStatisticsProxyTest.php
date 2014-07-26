@@ -16,24 +16,24 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
         $cacheManager = $this->getMock('KmbCache\Service\CacheManagerInterface');
         $cacheManager->expects($this->any())
             ->method('getItem')
-            ->will($this->returnValue(array(
+            ->will($this->returnValue([
                 'unchangedCount' => 3,
                 'changedCount' => 1,
                 'failedCount' => 1,
                 'nodesCount' => 5,
-                'nodesCountByOS' => array(
+                'nodesCountByOS' => [
                     'Debian GNU/Linux 6.0.7 (squeeze)' => 2,
                     'windows' => 2,
                     'Debian GNU/Linux 7.4 (wheezy)' => 1,
-                ),
-                'nodesPercentageByOS' => array(
+                ],
+                'nodesPercentageByOS' => [
                     'Debian GNU/Linux 6.0.7 (squeeze)' => 0.40,
                     'windows' => 0.40,
                     'Debian GNU/Linux 7.4 (wheezy)' => 0.20,
-                ),
+                ],
                 'osCount' => 3,
-                'recentlyRebootedNodes' => array('node2.local' => '2:32 hours',  'node4.local' => '4:01 hours'),
-            )));
+                'recentlyRebootedNodes' => ['node2.local' => '2:32 hours',  'node4.local' => '4:01 hours'],
+            ]));
         $this->nodeStatisticsProxyService = new Service\NodeStatisticsProxy();
         $this->nodeStatisticsProxyService->setCacheManager($cacheManager);
     }
@@ -41,24 +41,24 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetAllAsArray()
     {
-        $this->assertEquals(array(
+        $this->assertEquals([
             'unchangedCount' => 3,
             'changedCount' => 1,
             'failedCount' => 1,
             'nodesCount' => 5,
-            'nodesCountByOS' => array(
+            'nodesCountByOS' => [
                 'Debian GNU/Linux 6.0.7 (squeeze)' => 2,
                 'windows' => 2,
                 'Debian GNU/Linux 7.4 (wheezy)' => 1,
-            ),
-            'nodesPercentageByOS' => array(
+            ],
+            'nodesPercentageByOS' => [
                 'Debian GNU/Linux 6.0.7 (squeeze)' => 0.40,
                 'windows' => 0.40,
                 'Debian GNU/Linux 7.4 (wheezy)' => 0.20,
-            ),
+            ],
             'osCount' => 3,
-            'recentlyRebootedNodes' => array('node2.local' => '2:32 hours',  'node4.local' => '4:01 hours'),
-        ), $this->nodeStatisticsProxyService->getAllAsArray());
+            'recentlyRebootedNodes' => ['node2.local' => '2:32 hours',  'node4.local' => '4:01 hours'],
+        ], $this->nodeStatisticsProxyService->getAllAsArray());
     }
 
     /** @test */
@@ -94,29 +94,29 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetNodesCountByOS()
     {
-        $this->assertEquals(array(
+        $this->assertEquals([
             'Debian GNU/Linux 6.0.7 (squeeze)' => 2,
             'windows' => 2,
             'Debian GNU/Linux 7.4 (wheezy)' => 1,
-        ), $this->nodeStatisticsProxyService->getNodesCountByOS());
+        ], $this->nodeStatisticsProxyService->getNodesCountByOS());
     }
 
     /** @test */
     public function canGetNodesPercentageByOS()
     {
-        $this->assertEquals(array(
+        $this->assertEquals([
             'Debian GNU/Linux 6.0.7 (squeeze)' => 0.40,
             'windows' => 0.40,
             'Debian GNU/Linux 7.4 (wheezy)' => 0.20,
-        ), $this->nodeStatisticsProxyService->getNodesPercentageByOS());
+        ], $this->nodeStatisticsProxyService->getNodesPercentageByOS());
     }
 
     /** @test */
     public function canGetRecentlyRebootedNodes()
     {
-        $this->assertEquals(array(
+        $this->assertEquals([
             'node2.local' => '2:32 hours',
             'node4.local' => '4:01 hours'
-        ), $this->nodeStatisticsProxyService->getRecentlyRebootedNodes());
+        ], $this->nodeStatisticsProxyService->getRecentlyRebootedNodes());
     }
 }

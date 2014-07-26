@@ -24,7 +24,7 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
     {
         $this->setApplicationConfig(Bootstrap::getApplicationConfig());
         parent::setUp();
-        $this->cacheStorage = StorageFactory::factory(array('adapter' => array('name' => 'memory')));
+        $this->cacheStorage = StorageFactory::factory(['adapter' => ['name' => 'memory']]);
         $serviceManager = $this->getApplicationServiceLocator();
         $serviceManager->setAllowOverride(true);
         $serviceManager->setService('DateTimeFactory', new FakeDateTimeFactory(new \DateTime(static::FAKE_DATETIME)));
@@ -50,7 +50,7 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
     /** @test */
     public function canRefreshCache()
     {
-        $this->cacheStorage->setItem('nodesStatistics', array('nodesCount' => 1));
+        $this->cacheStorage->setItem('nodesStatistics', ['nodesCount' => 1]);
 
         $this->dispatch('/cache/refresh');
 
@@ -58,12 +58,12 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
         $this->assertControllerName('KmbCache\Controller\Index');
         $this->assertEquals('{"message":"OK"}', $this->getResponse()->getContent());
         $this->assertEquals(
-            array(
+            [
                 'unchangedCount' => 5,
                 'changedCount' => 2,
                 'failedCount' => 2,
                 'nodesCount' => 9,
-                'nodesCountByOS' => array(
+                'nodesCountByOS' => [
                     'Debian GNU/Linux 6.0.9 (squeeze)' => 2,
                     'Debian GNU/Linux 7.1 (wheezy)' => 2,
                     'Debian GNU/Linux 7.5 (wheezy)' => 1,
@@ -71,8 +71,8 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
                     'Windows' => 1,
                     'Debian GNU/Linux 7.3 (wheezy)' => 1,
                     'Debian GNU/Linux 7.4 (wheezy)' => 1,
-                ),
-                'nodesPercentageByOS' => array(
+                ],
+                'nodesPercentageByOS' => [
                     'Debian GNU/Linux 6.0.9 (squeeze)' => 0.22,
                     'Debian GNU/Linux 7.1 (wheezy)' => 0.22,
                     'Debian GNU/Linux 7.5 (wheezy)' => 0.11,
@@ -80,13 +80,13 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
                     'Windows' => 0.11,
                     'Debian GNU/Linux 7.3 (wheezy)' => 0.11,
                     'Debian GNU/Linux 7.4 (wheezy)' => 0.11,
-                ),
+                ],
                 'osCount' => 7,
-                'recentlyRebootedNodes' => array(
+                'recentlyRebootedNodes' => [
                     'node7.local' => '3:02 hours',
                     'node8.local' => '0:23 hours',
-                ),
-            ), $this->cacheStorage->getItem('nodesStatistics')
+                ],
+            ], $this->cacheStorage->getItem('nodesStatistics')
         );
     }
 

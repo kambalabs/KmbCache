@@ -26,26 +26,26 @@ class Bootstrap extends AbstractBootstrap
 
     public static function getNamespacePaths()
     {
-        return ArrayUtils::merge(parent::getNamespacePaths(), array(
+        return ArrayUtils::merge(parent::getNamespacePaths(), [
             'KmbPuppetDbTest' => dirname(dirname(dirname(__DIR__))) . '/KmbPuppetDb/test/KmbPuppetDbTest'
-        ));
+        ]);
     }
 
     public static function getApplicationConfig()
     {
         return ArrayUtils::merge(
             parent::getApplicationConfig(),
-            array(
-                'module_listener_options' => array(
-                    'config_glob_paths' => array(
+            [
+                'module_listener_options' => [
+                    'config_glob_paths' => [
                         dirname(__DIR__) . '/{,*.}{global,local}.php',
-                    ),
-                ),
-                'modules' => array(
+                    ],
+                ],
+                'modules' => [
                     'KmbPuppetDb',
                     'KmbCache',
-                )
-            )
+                ]
+            ]
         );
     }
 }

@@ -36,7 +36,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     {
         $this->nodeStatisticsService = $this->getMock('KmbPuppetDb\Service\NodeStatistics');
         $this->reportStatisticsService = $this->getMock('KmbPuppetDb\Service\ReportStatistics');
-        $this->cacheStorage = StorageFactory::factory(array('adapter' => 'memory'));
+        $this->cacheStorage = StorageFactory::factory(['adapter' => 'memory']);
         $this->cacheManager = new CacheManager();
         $this->cacheManager->setCacheStorage($this->cacheStorage);
         $this->cacheManager->setNodeStatisticsService($this->nodeStatisticsService);
@@ -88,14 +88,14 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canRefresh()
     {
-        $this->cacheStorage->setItem('nodesStatistics', array('nodesCount' => 1));
-        $this->cacheStorage->setItem('reports', array(new Model\Report(Model\ReportInterface::SUCCESS)));
-        $this->cacheStorage->setItem('reportsStatistics', array('skips' => 1));
-        $expectedNodesStatistics = array('nodesCount' => 2);
+        $this->cacheStorage->setItem('nodesStatistics', ['nodesCount' => 1]);
+        $this->cacheStorage->setItem('reports', [new Model\Report(Model\ReportInterface::SUCCESS)]);
+        $this->cacheStorage->setItem('reportsStatistics', ['skips' => 1]);
+        $expectedNodesStatistics = ['nodesCount' => 2];
         $this->nodeStatisticsService->expects($this->any())
             ->method('getAllAsArray')
             ->will($this->returnValue($expectedNodesStatistics));
-        $expectedReportsStatistics = array('failure' => 1, 'success' => 1);
+        $expectedReportsStatistics = ['failure' => 1, 'success' => 1];
         $this->reportStatisticsService->expects($this->any())
             ->method('getAllAsArray')
             ->will($this->returnValue($expectedReportsStatistics));
@@ -119,13 +119,13 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetItem()
     {
-        $expectedNodesStatistics = array(
+        $expectedNodesStatistics = [
             'unchangedCount' => 2,
             'changedCount' => 1,
             'failedCount' => 1,
             'nodesCount' => 9,
             'osCount' => 2,
-        );
+        ];
         $this->nodeStatisticsService->expects($this->any())
             ->method('getAllAsArray')
             ->will($this->returnValue($expectedNodesStatistics));
@@ -136,13 +136,13 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetItemFromCache()
     {
-        $expectedNodesStatistics = array(
+        $expectedNodesStatistics = [
             'unchangedCount' => 2,
             'changedCount' => 1,
             'failedCount' => 1,
             'nodesCount' => 9,
             'osCount' => 2,
-        );
+        ];
         $this->cacheStorage->setItem('nodesStatistics', $expectedNodesStatistics);
 
         $this->assertEquals($expectedNodesStatistics, $this->cacheManager->getItem('nodesStatistics'));

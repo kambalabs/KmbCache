@@ -16,12 +16,12 @@ class ReportStatisticsProxyTest extends \PHPUnit_Framework_TestCase
         $cacheManager = $this->getMock('KmbCache\Service\CacheManagerInterface');
         $cacheManager->expects($this->any())
             ->method('getItem')
-            ->will($this->returnValue(array(
+            ->will($this->returnValue([
                 'skips' => 3,
                 'success' => 1,
                 'failures' => 1,
                 'noops' => 5,
-            )));
+            ]));
         $this->reportStatisticsProxyService = new Service\ReportStatisticsProxy();
         $this->reportStatisticsProxyService->setCacheManager($cacheManager);
     }
@@ -29,12 +29,12 @@ class ReportStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetAllAsArray()
     {
-        $this->assertEquals(array(
+        $this->assertEquals([
             'skips' => 3,
             'success' => 1,
             'failures' => 1,
             'noops' => 5,
-        ), $this->reportStatisticsProxyService->getAllAsArray());
+        ], $this->reportStatisticsProxyService->getAllAsArray());
     }
 
     /** @test */
