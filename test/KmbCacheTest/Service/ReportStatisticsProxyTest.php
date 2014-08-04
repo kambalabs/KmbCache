@@ -24,7 +24,7 @@ class ReportStatisticsProxyTest extends \PHPUnit_Framework_TestCase
         $reportStatisticsService = $this->getMock('KmbPuppetDb\Service\ReportStatistics');
         $reportStatisticsService->expects($this->any())
             ->method('getAllAsArray')
-            ->will($this->returnCallback(function($query = null) {
+            ->will($this->returnCallback(function ($query = null) {
                 if ($query == ['=', 'environment', 'STABLE_PF1']) {
                     return [
                         'skips' => 1,
@@ -32,8 +32,7 @@ class ReportStatisticsProxyTest extends \PHPUnit_Framework_TestCase
                         'failures' => 0,
                         'noops' => 2,
                     ];
-                }
-                elseif ($query !== null) {
+                } elseif ($query !== null) {
                     return [
                         'skips' => 2,
                         'success' => 2,

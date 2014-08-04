@@ -24,7 +24,7 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
         $nodeStatisticsService = $this->getMock('KmbPuppetDb\Service\NodeStatistics');
         $nodeStatisticsService->expects($this->any())
             ->method('getAllAsArray')
-            ->will($this->returnCallback(function($query = null) {
+            ->will($this->returnCallback(function ($query = null) {
                 if (
                     $query == ['=', ['fact', Model\NodeInterface::ENVIRONMENT_FACT], 'STABLE_PF1'] ||
                     $query == ['=', 'facts-environment', 'STABLE_PF1']
@@ -47,8 +47,7 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
                         'osCount' => 3,
                         'recentlyRebootedNodes' => ['node2.local' => '2:32 hours'],
                     ];
-                }
-                elseif ($query !== null) {
+                } elseif ($query !== null) {
                     return [
                         'unchangedCount' => 1,
                         'changedCount' => 1,
@@ -82,7 +81,7 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
                         'Debian GNU/Linux 7.4 (wheezy)' => 0.20,
                     ],
                     'osCount' => 3,
-                    'recentlyRebootedNodes' => ['node2.local' => '2:32 hours',  'node4.local' => '4:01 hours'],
+                    'recentlyRebootedNodes' => ['node2.local' => '2:32 hours', 'node4.local' => '4:01 hours'],
                 ];
             }));
         $this->nodeStatisticsProxyService = new Service\NodeStatisticsProxy();
