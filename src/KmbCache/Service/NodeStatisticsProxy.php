@@ -21,130 +21,189 @@
 namespace KmbCache\Service;
 
 use KmbPuppetDb\Model;
+use KmbPuppetDb\Query;
 use KmbPuppetDb\Service;
+use Zend\Cache\Storage\StorageInterface;
 
 class NodeStatisticsProxy implements Service\NodeStatisticsInterface
 {
-    /**
-     * @var CacheManagerInterface
-     */
-    protected $cacheManager;
+    /** @var StorageInterface */
+    protected $cacheStorage;
+
+    /** @var Service\NodeStatisticsInterface */
+    protected $nodeStatisticsService;
 
     /**
      * Get unchanged nodes count.
      *
+     * @param Query|array $query
      * @return int
      */
-    public function getUnchangedCount()
+    public function getUnchangedCount($query = null)
     {
-        return $this->getStatistic('unchangedCount');
+        return $this->getStatistic('unchangedCount', $query);
     }
 
     /**
      * Get changed nodes count.
      *
+     * @param Query|array $query
      * @return int
      */
-    public function getChangedCount()
+    public function getChangedCount($query = null)
     {
-        return $this->getStatistic('changedCount');
+        return $this->getStatistic('changedCount', $query);
     }
 
     /**
      * Get failed nodes count.
      *
+     * @param Query|array $query
      * @return int
      */
-    public function getFailedCount()
+    public function getFailedCount($query = null)
     {
-        return $this->getStatistic('failedCount');
+        return $this->getStatistic('failedCount', $query);
     }
 
     /**
      * Get nodes count.
      *
+     * @param Query|array $query
      * @return int
      */
-    public function getNodesCount()
+    public function getNodesCount($query = null)
     {
-        return $this->getStatistic('nodesCount');
+        return $this->getStatistic('nodesCount', $query);
     }
 
     /**
      * Get nodes count grouped by Operating System.
      *
+     * @param Query|array $query
      * @return array
      */
-    public function getNodesCountByOS()
+    public function getNodesCountByOS($query = null)
     {
-        return $this->getStatistic('nodesCountByOS');
+        return $this->getStatistic('nodesCountByOS', $query);
     }
 
     /**
      * Get nodes percentage grouped by Operating System.
      *
+     * @param Query|array $query
      * @return array
      */
-    public function getNodesPercentageByOS()
+    public function getNodesPercentageByOS($query = null)
     {
-        return $this->getStatistic('nodesPercentageByOS');
+        return $this->getStatistic('nodesPercentageByOS', $query);
     }
 
     /**
      * Get OS count.
      *
+     * @param Query|array $query
      * @return int
      */
-    public function getOSCount()
+    public function getOSCount($query = null)
     {
-        return $this->getStatistic('osCount');
+        return $this->getStatistic('osCount', $query);
     }
 
     /**
      * Get recently rebooted nodes.
      *
+     * @param Query|array $query
      * @return array
      */
-    public function getRecentlyRebootedNodes()
+    public function getRecentlyRebootedNodes($query = null)
     {
-        return $this->getStatistic('recentlyRebootedNodes');
+        return $this->getStatistic('recentlyRebootedNodes', $query);
     }
 
     /**
      * Get all statistics.
      *
+     * @param Query|array $query
      * @return array
      */
-    public function getAllAsArray()
+    public function getAllAsArray($query = null)
     {
-        return $this->getCacheManager()->getItem('nodesStatistics');
+        $key = null;
+        if ($query == null) {
+            $key = CacheManagerInterface::KEY_NODE_STATISTICS;
+        } elseif ($this->isEnvironmentQuery($query)) {
+            $key = CacheManagerInterface::KEY_NODE_STATISTICS . '.' . $query[2];
+        }
+
+        if ($key !== null && $this->getCacheStorage()->hasItem($key)) {
+            return $this->getCacheStorage()->getItem($key);
+        }
+
+        return $this->getNodeStatisticsService()->getAllAsArray($query);
     }
 
     /**
-     * @return CacheManagerInterface
+     * @return Service\NodeStatisticsInterface
      */
-    public function getCacheManager()
+    public function getNodeStatisticsService()
     {
-        return $this->cacheManager;
+        return $this->nodeStatisticsService;
     }
 
     /**
-     * @param $cacheManager
+     * @param $nodeStatisticsService
      * @return NodeStatisticsProxy
      */
-    public function setCacheManager($cacheManager)
+    public function setNodeStatisticsService($nodeStatisticsService)
     {
-        $this->cacheManager = $cacheManager;
+        $this->nodeStatisticsService = $nodeStatisticsService;
         return $this;
     }
 
     /**
-     * @param $statistic
+     * Set CacheStorage.
+     *
+     * @param \Zend\Cache\Storage\StorageInterface $cacheStorage
+     * @return NodeStatisticsProxy
+     */
+    public function setCacheStorage($cacheStorage)
+    {
+        $this->cacheStorage = $cacheStorage;
+        return $this;
+    }
+
+    /**
+     * Get CacheStorage.
+     *
+     * @return \Zend\Cache\Storage\StorageInterface
+     */
+    public function getCacheStorage()
+    {
+        return $this->cacheStorage;
+    }
+
+    /**
+     * @param             $statistic
+     * @param Query|array $query
      * @return mixed
      */
-    protected function getStatistic($statistic)
+    protected function getStatistic($statistic, $query = null)
     {
-        $allStatistics = $this->getAllAsArray();
+        $allStatistics = $this->getAllAsArray($query);
         return $allStatistics[$statistic];
+    }
+
+    /**
+     * @param $query
+     * @return bool
+     */
+    protected function isEnvironmentQuery($query)
+    {
+        return
+            count($query) === 3 &&
+            $query[0] === '=' &&
+            ($query[1] === ['fact', Model\NodeInterface::ENVIRONMENT_FACT] || $query[1] == 'facts-environment') &&
+            !empty($query[2]);
     }
 }

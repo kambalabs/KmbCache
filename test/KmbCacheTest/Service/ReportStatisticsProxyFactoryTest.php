@@ -14,6 +14,7 @@ class ReportStatisticsProxyFactoryTest extends \PHPUnit_Framework_TestCase
         $service = $factory->createService(Bootstrap::getServiceManager());
 
         $this->assertInstanceOf('KmbCache\Service\ReportStatisticsProxy', $service);
-        $this->assertInstanceOf('KmbCache\Service\CacheManager', $service->getCacheManager());
+        $this->assertInstanceOf('KmbPuppetDb\Service\ReportStatistics', $service->getReportStatisticsService());
+        $this->assertInstanceOf('Zend\Cache\Storage\StorageInterface', $service->getCacheStorage());
     }
 }

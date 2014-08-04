@@ -21,21 +21,35 @@
 namespace KmbCache\Service;
 
 use KmbCache\Exception\RuntimeException;
+use KmbDomain\Model\EnvironmentInterface;
 use KmbPuppetDb\Service\NodeStatisticsInterface;
 use KmbPuppetDb\Service\ReportStatisticsInterface;
 
 interface CacheManagerInterface
 {
+    const KEY_CACHE_STATUS = 'cacheStatus';
+    const KEY_REFRESHED_AT = 'refreshedAt';
+    const KEY_NODE_STATISTICS = 'nodeStatistics';
+    const KEY_REPORT_STATISTICS = 'reportStatistics';
     const PENDING = 'pending';
     const COMPLETED = 'completed';
 
     /**
      * Refresh cache
      *
+     * @param EnvironmentInterface $environment
      * @param bool $forceOnPending Allows to refresh cache even if the status is pending.
      * @throws RuntimeException When the cache status is pending (and $force is false).
      */
-    public function refresh($forceOnPending = false);
+    public function refresh($environment = null, $forceOnPending = false);
+
+    /**
+     * Force refreshing cache
+     *
+     * @param EnvironmentInterface $environment
+     * @throws RuntimeException When the cache status is pending (and $force is false).
+     */
+    public function forceRefresh($environment = null);
 
     /**
      * Get the status of the cache (null|pending|completed)
@@ -50,14 +64,6 @@ interface CacheManagerInterface
      * @return \DateTime
      */
     public function getRefreshedAt();
-
-    /**
-     * Get an item from the cache
-     *
-     * @param $key
-     * @return mixed Data on success, null on failure
-     */
-    public function getItem($key);
 
     /**
      * @return NodeStatisticsInterface

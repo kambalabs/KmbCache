@@ -20,8 +20,10 @@
  */
 namespace KmbCache\Service;
 
-use KmbCache\Exception\RuntimeException;
 use KmbBase\DateTimeFactoryInterface;
+use KmbCache\Exception\RuntimeException;
+use KmbDomain\Model\EnvironmentInterface;
+use KmbPuppetDb\Model\NodeInterface;
 use KmbPuppetDb\Service\NodeStatisticsInterface;
 use KmbPuppetDb\Service\ReportStatisticsInterface;
 use Zend\Cache\Storage\StorageInterface;
@@ -33,42 +35,50 @@ use Zend\Cache\Storage\StorageInterface;
  */
 class CacheManager implements CacheManagerInterface
 {
-    /**
-     * @var NodeStatisticsInterface
-     */
+    /** @var NodeStatisticsInterface */
     protected $nodeStatisticsService;
 
-    /**
-     * @var ReportStatisticsInterface
-     */
+    /** @var ReportStatisticsInterface */
     protected $reportStatisticsService;
 
-    /**
-     * @var StorageInterface
-     */
+    /** @var StorageInterface */
     protected $cacheStorage;
 
-    /**
-     * @var DateTimeFactoryInterface
-     */
+    /** @var DateTimeFactoryInterface */
     protected $dateTimeFactory;
 
     /**
      * Refresh cache
      *
-     * @param bool $forceOnPending Allows to refresh cache even if the status is pending.
+     * @param EnvironmentInterface $environment
+     * @param bool                 $forceOnPending Allows to refresh cache even if the status is pending.
      * @throws RuntimeException When the cache status is pending (and $forceOnPending is false).
      */
-    public function refresh($forceOnPending = false)
+    public function refresh($environment = null, $forceOnPending = false)
     {
-        if (!$forceOnPending && $this->getCacheStorage()->getItem('cacheStatus') == static::PENDING) {
+        if (!$forceOnPending && $this->getCacheStorage()->getItem($this->statusKey($environment)) == static::PENDING) {
             throw new RuntimeException('Cache refresh is already in progress');
         }
-        $this->getCacheStorage()->setItem('cacheStatus', static::PENDING);
-        $this->getCacheStorage()->setItem('nodesStatistics', $this->getNodeStatisticsService()->getAllAsArray());
-        $this->getCacheStorage()->setItem('reportsStatistics', $this->getReportStatisticsService()->getAllAsArray());
-        $this->getCacheStorage()->setItem('cacheStatus', static::COMPLETED);
-        $this->getCacheStorage()->setItem('refreshedAt', $this->getDateTimeFactory()->now());
+
+        /** TODO: Query will be ['=', 'facts-environment', $environment->getNormalizedName()] when PuppetDB v4 API will be stable */
+        $nodeStatistics = $this->getNodeStatisticsService()->getAllAsArray($environment ? ['=', ['fact', NodeInterface::ENVIRONMENT_FACT], $environment->getNormalizedName()] : null);
+        $reportStatistics = $this->getReportStatisticsService()->getAllAsArray($environment ? ['=', 'environment', $environment->getNormalizedName()] : null);
+
+        $this->getCacheStorage()->setItem($this->statusKey($environment), static::PENDING);
+        $this->getCacheStorage()->setItem($this->nodeStatisticsKey($environment), $nodeStatistics);
+        $this->getCacheStorage()->setItem($this->reportStatisticsKey($environment), $reportStatistics);
+        $this->getCacheStorage()->setItem($this->statusKey($environment), static::COMPLETED);
+        $this->getCacheStorage()->setItem($this->refreshedAtKey($environment), $this->getDateTimeFactory()->now());
+    }
+
+    /**
+     * Force refreshing cache
+     *
+     * @param EnvironmentInterface $environment
+     * @throws RuntimeException When the cache status is pending (and $force is false).
+     */
+    public function forceRefresh($environment = null)
+    {
     }
 
     /**
@@ -78,7 +88,7 @@ class CacheManager implements CacheManagerInterface
      */
     public function getStatus()
     {
-        return $this->getCacheStorage()->getItem('cacheStatus');
+        return $this->getCacheStorage()->getItem(static::KEY_CACHE_STATUS);
     }
 
     /**
@@ -88,21 +98,7 @@ class CacheManager implements CacheManagerInterface
      */
     public function getRefreshedAt()
     {
-        return $this->getCacheStorage()->getItem('refreshedAt');
-    }
-
-    /**
-     * Get an item from the cache
-     *
-     * @param $key
-     * @return mixed Data on success, null on failure
-     */
-    public function getItem($key)
-    {
-        if (!$this->getCacheStorage()->hasItem($key)) {
-            $this->refresh(true);
-        }
-        return $this->getCacheStorage()->getItem($key);
+        return $this->getCacheStorage()->getItem(static::KEY_REFRESHED_AT);
     }
 
     /**
@@ -175,5 +171,51 @@ class CacheManager implements CacheManagerInterface
     {
         $this->dateTimeFactory = $dateTimeFactory;
         return $this;
+    }
+
+    /**
+     * @param $key
+     * @param EnvironmentInterface $environment
+     * @return string
+     */
+    protected function key($key, $environment)
+    {
+        return $environment == null ? $key : $key . '.' . $environment->getNormalizedName();
+    }
+
+    /**
+     * @param $environment
+     * @return string
+     */
+    protected function nodeStatisticsKey($environment)
+    {
+        return $this->key(static::KEY_NODE_STATISTICS, $environment);
+    }
+
+    /**
+     * @param $environment
+     * @return string
+     */
+    protected function reportStatisticsKey($environment)
+    {
+        return $this->key(static::KEY_REPORT_STATISTICS, $environment);
+    }
+
+    /**
+     * @param $environment
+     * @return string
+     */
+    protected function refreshedAtKey($environment)
+    {
+        return $this->key(static::KEY_REFRESHED_AT, $environment);
+    }
+
+    /**
+     * @param $environment
+     * @return string
+     */
+    protected function statusKey($environment)
+    {
+        return $this->key(static::KEY_CACHE_STATUS, $environment);
     }
 }

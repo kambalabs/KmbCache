@@ -50,7 +50,7 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
     /** @test */
     public function canRefreshCache()
     {
-        $this->cacheStorage->setItem('nodesStatistics', ['nodesCount' => 1]);
+        $this->cacheStorage->setItem(CacheManagerInterface::KEY_NODE_STATISTICS, ['nodesCount' => 1]);
 
         $this->dispatch('/cache/refresh');
 
@@ -86,7 +86,7 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
                     'node7.local' => '3:02 hours',
                     'node8.local' => '0:23 hours',
                 ],
-            ], $this->cacheStorage->getItem('nodesStatistics')
+            ], $this->cacheStorage->getItem(CacheManagerInterface::KEY_NODE_STATISTICS)
         );
     }
 

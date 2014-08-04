@@ -44,8 +44,12 @@ return [
         ],
         'factories' => [
             'KmbCache\Service\CacheManager' => 'KmbCache\Service\CacheManagerFactory',
-            'KmbPuppetDb\Service\NodeStatistics' => 'KmbCache\Service\NodeStatisticsProxyFactory',
-            'KmbPuppetDb\Service\ReportStatistics' => 'KmbCache\Service\ReportStatisticsProxyFactory',
+            'KmbCache\Service\NodeStatisticsProxy' => 'KmbCache\Service\NodeStatisticsProxyFactory',
+            'KmbCache\Service\ReportStatisticsProxy' => 'KmbCache\Service\ReportStatisticsProxyFactory',
+        ],
+        'aliases' => [
+            'nodeStatisticsService' => 'KmbCache\Service\NodeStatisticsProxy',
+            'reportStatisticsService' => 'KmbCache\Service\ReportStatisticsProxy',
         ],
     ],
     'zfc_rbac' => [

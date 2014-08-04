@@ -20,90 +20,145 @@
  */
 namespace KmbCache\Service;
 
-use KmbPuppetDb\Service\ReportStatisticsInterface;
+use KmbPuppetDb\Query;
+use KmbPuppetDb\Service;
+use Zend\Cache\Storage\StorageInterface;
 
-class ReportStatisticsProxy implements ReportStatisticsInterface
+class ReportStatisticsProxy implements Service\ReportStatisticsInterface
 {
-    /**
-     * @var CacheManagerInterface
-     */
-    protected $cacheManager;
+    /** @var StorageInterface */
+    protected $cacheStorage;
+
+    /** @var Service\ReportStatisticsInterface */
+    protected $reportStatisticsService;
 
     /**
      * Get all statistics as array.
      *
+     * @param Query|array $query
      * @return array
      */
-    public function getAllAsArray()
+    public function getAllAsArray($query = null)
     {
-        return $this->getCacheManager()->getItem('reportsStatistics');
+        $key = null;
+        if ($query == null) {
+            $key = CacheManagerInterface::KEY_REPORT_STATISTICS;
+        } elseif ($this->isEnvironmentQuery($query)) {
+            $key = CacheManagerInterface::KEY_REPORT_STATISTICS . '.' . $query[2];
+        }
+
+        if ($key != null && $this->getCacheStorage()->hasItem($key)) {
+            return $this->getCacheStorage()->getItem($key);
+        }
+
+        return $this->getReportStatisticsService()->getAllAsArray($query);
     }
 
     /**
      * Get success count.
      *
+     * @param Query|array $query
      * @return int
      */
-    public function getSuccessCount()
+    public function getSuccessCount($query = null)
     {
-        return $this->getStatistic('success');
+        return $this->getStatistic('success', $query);
     }
 
     /**
      * Get failures count.
      *
+     * @param Query|array $query
      * @return int
      */
-    public function getFailuresCount()
+    public function getFailuresCount($query = null)
     {
-        return $this->getStatistic('failures');
+        return $this->getStatistic('failures', $query);
     }
 
     /**
      * Get skips count.
      *
+     * @param Query|array $query
      * @return int
      */
-    public function getSkipsCount()
+    public function getSkipsCount($query = null)
     {
-        return $this->getStatistic('skips');
+        return $this->getStatistic('skips', $query);
     }
 
     /**
      * Get noops count.
      *
+     * @param Query|array $query
      * @return int
      */
-    public function getNoopsCount()
+    public function getNoopsCount($query = null)
     {
-        return $this->getStatistic('noops');
+        return $this->getStatistic('noops', $query);
     }
 
     /**
-     * @return CacheManagerInterface
-     */
-    public function getCacheManager()
-    {
-        return $this->cacheManager;
-    }
-
-    /**
-     * @param $cacheManager
+     * Set CacheStorage.
+     *
+     * @param \Zend\Cache\Storage\StorageInterface $cacheStorage
      * @return ReportStatisticsProxy
      */
-    public function setCacheManager($cacheManager)
+    public function setCacheStorage($cacheStorage)
     {
-        $this->cacheManager = $cacheManager;
+        $this->cacheStorage = $cacheStorage;
         return $this;
     }
 
     /**
-     * @param $statistic
+     * Get CacheStorage.
+     *
+     * @return \Zend\Cache\Storage\StorageInterface
+     */
+    public function getCacheStorage()
+    {
+        return $this->cacheStorage;
+    }
+
+    /**
+     * Set ReportStatisticsService.
+     *
+     * @param \KmbPuppetDb\Service\ReportStatisticsInterface $reportStatisticsService
+     * @return ReportStatisticsProxy
+     */
+    public function setReportStatisticsService($reportStatisticsService)
+    {
+        $this->reportStatisticsService = $reportStatisticsService;
+        return $this;
+    }
+
+    /**
+     * Get ReportStatisticsService.
+     *
+     * @return \KmbPuppetDb\Service\ReportStatisticsInterface
+     */
+    public function getReportStatisticsService()
+    {
+        return $this->reportStatisticsService;
+    }
+
+    /**
+     * @param             $statistic
+     * @param Query|array $query
      * @return mixed
      */
-    protected function getStatistic($statistic)
+    protected function getStatistic($statistic, $query = null)
     {
-        $allStatistics = $this->getAllAsArray();
+        $allStatistics = $this->getAllAsArray($query);
         return $allStatistics[$statistic];
+    }
+
+    /**
+     * @param $query
+     * @return bool
+     */
+    protected function isEnvironmentQuery($query)
+    {
+        return count($query) === 3 && $query[0] === '=' && $query[1] == 'environment' && !empty($query[2]);
     }
 }

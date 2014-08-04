@@ -37,18 +37,12 @@ class CacheManagerFactory implements FactoryInterface
         $cacheManager = new CacheManager();
         $cacheManager->setCacheStorage($serviceLocator->get('CacheService'));
 
-        // Cache manager needs real node statistics service with real node service
-        $nodeServiceFactory = new Service\NodeFactory();
-        $nodeService = $nodeServiceFactory->createService($serviceLocator);
-        $nodeStatisticsService = new Service\NodeStatistics();
-        $nodeStatisticsService->setNodeService($nodeService);
+        // Cache manager needs real node statistics service
+        $nodeStatisticsService = $serviceLocator->get('KmbPuppetDb\Service\NodeStatistics');
         $cacheManager->setNodeStatisticsService($nodeStatisticsService);
 
-        // Cache manager needs real report statistics service with real report service
-        $reportServiceFactory = new Service\ReportFactory();
-        $reportService = $reportServiceFactory->createService($serviceLocator);
-        $reportStatisticsService = new Service\ReportStatistics();
-        $reportStatisticsService->setReportService($reportService);
+        // Cache manager needs real report statistics service
+        $reportStatisticsService = $serviceLocator->get('KmbPuppetDb\Service\ReportStatistics');
         $cacheManager->setReportStatisticsService($reportStatisticsService);
 
         $cacheManager->setDateTimeFactory($serviceLocator->get('DateTimeFactory'));

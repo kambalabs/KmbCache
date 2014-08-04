@@ -27,7 +27,8 @@ class Bootstrap extends AbstractBootstrap
     public static function getNamespacePaths()
     {
         return ArrayUtils::merge(parent::getNamespacePaths(), [
-            'KmbPuppetDbTest' => dirname(dirname(dirname(__DIR__))) . '/KmbPuppetDb/test/KmbPuppetDbTest'
+            'KmbPuppetDbTest' => dirname(dirname(dirname(__DIR__))) . '/KmbPuppetDb/test/KmbPuppetDbTest',
+            __NAMESPACE__ => __DIR__
         ]);
     }
 
@@ -42,6 +43,11 @@ class Bootstrap extends AbstractBootstrap
                     ],
                 ],
                 'modules' => [
+                    'ZfcRbac',
+                    'KmbDomain',
+                    'KmbAuthentication',
+                    'KmbFakeAuthentication',
+                    'KmbPermission',
                     'KmbPuppetDb',
                     'KmbCache',
                 ]

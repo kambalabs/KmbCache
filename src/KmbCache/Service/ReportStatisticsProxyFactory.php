@@ -20,6 +20,8 @@
  */
 namespace KmbCache\Service;
 
+use KmbPuppetDb\Service\ReportStatisticsInterface;
+use Zend\Cache\Storage\StorageInterface;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
@@ -34,7 +36,15 @@ class ReportStatisticsProxyFactory implements FactoryInterface
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
         $service = new ReportStatisticsProxy();
-        $service->setCacheManager($serviceLocator->get('KmbCache\Service\CacheManager'));
+
+        /** @var ReportStatisticsInterface $reportStatisticsService */
+        $reportStatisticsService = $serviceLocator->get('KmbPuppetDb\Service\ReportStatistics');
+        $service->setReportStatisticsService($reportStatisticsService);
+
+        /** @var StorageInterface $cacheStorage */
+        $cacheStorage = $serviceLocator->get('CacheService');
+        $service->setCacheStorage($cacheStorage);
+
         return $service;
     }
 }

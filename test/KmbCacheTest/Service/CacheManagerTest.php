@@ -2,6 +2,8 @@
 namespace KmbCacheTest\Service;
 
 use KmbBase\FakeDateTimeFactory;
+use KmbCache\Service\CacheManagerInterface;
+use KmbDomain\Model\Environment;
 use KmbPuppetDb\Model;
 use KmbCache\Exception\RuntimeException;
 use KmbCache\Service\CacheManager;
@@ -53,9 +55,9 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetStatus()
     {
-        $this->cacheStorage->setItem('cacheStatus', CacheManager::PENDING);
+        $this->cacheStorage->setItem(CacheManagerInterface::KEY_CACHE_STATUS, CacheManagerInterface::PENDING);
 
-        $this->assertEquals(CacheManager::PENDING, $this->cacheManager->getStatus());
+        $this->assertEquals(CacheManagerInterface::PENDING, $this->cacheManager->getStatus());
     }
 
     /** @test */
@@ -68,7 +70,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     public function canGetRefreshedAt()
     {
         $now = new \DateTime();
-        $this->cacheStorage->setItem('refreshedAt', $now);
+        $this->cacheStorage->setItem(CacheManagerInterface::KEY_REFRESHED_AT, $now);
 
         $this->assertEquals($now, $this->cacheManager->getRefreshedAt());
     }
@@ -80,7 +82,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
      */
     public function cannotRefreshWhenCacheStatusIsPending()
     {
-        $this->cacheStorage->setItem('cacheStatus', CacheManager::PENDING);
+        $this->cacheStorage->setItem(CacheManagerInterface::KEY_CACHE_STATUS, CacheManagerInterface::PENDING);
 
         $this->cacheManager->refresh();
     }
@@ -88,9 +90,8 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canRefresh()
     {
-        $this->cacheStorage->setItem('nodesStatistics', ['nodesCount' => 1]);
-        $this->cacheStorage->setItem('reports', [new Model\Report(Model\ReportInterface::SUCCESS)]);
-        $this->cacheStorage->setItem('reportsStatistics', ['skips' => 1]);
+        $this->cacheStorage->setItem(CacheManagerInterface::KEY_NODE_STATISTICS, ['nodesCount' => 1]);
+        $this->cacheStorage->setItem(CacheManagerInterface::KEY_REPORT_STATISTICS, ['skips' => 1]);
         $expectedNodesStatistics = ['nodesCount' => 2];
         $this->nodeStatisticsService->expects($this->any())
             ->method('getAllAsArray')
@@ -102,49 +103,46 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
 
         $this->cacheManager->refresh();
 
-        $this->assertEquals($expectedNodesStatistics, $this->cacheStorage->getItem('nodesStatistics'));
-        $this->assertEquals($expectedReportsStatistics, $this->cacheStorage->getItem('reportsStatistics'));
-        $this->assertEquals(CacheManager::COMPLETED, $this->cacheStorage->getItem('cacheStatus'));
-        $this->assertEquals(new \DateTime(static::FAKE_DATETIME), $this->cacheStorage->getItem('refreshedAt'));
+        $this->assertEquals($expectedNodesStatistics, $this->cacheStorage->getItem(CacheManagerInterface::KEY_NODE_STATISTICS));
+        $this->assertEquals($expectedReportsStatistics, $this->cacheStorage->getItem(CacheManagerInterface::KEY_REPORT_STATISTICS));
+        $this->assertEquals(CacheManagerInterface::COMPLETED, $this->cacheStorage->getItem(CacheManagerInterface::KEY_CACHE_STATUS));
+        $this->assertEquals(new \DateTime(static::FAKE_DATETIME), $this->cacheStorage->getItem(CacheManagerInterface::KEY_REFRESHED_AT));
     }
 
     /** @test */
     public function canForceRefreshWhenCacheStatusIsPending()
     {
-        $this->cacheStorage->setItem('cacheStatus', CacheManager::PENDING);
+        $this->cacheStorage->setItem(CacheManagerInterface::KEY_CACHE_STATUS, CacheManagerInterface::PENDING);
 
-        $this->cacheManager->refresh(true);
+        $this->cacheManager->forceRefresh();
     }
 
     /** @test */
-    public function canGetItem()
+    public function canRefreshForSpecificEnvironment()
     {
-        $expectedNodesStatistics = [
-            'unchangedCount' => 2,
-            'changedCount' => 1,
-            'failedCount' => 1,
-            'nodesCount' => 9,
-            'osCount' => 2,
-        ];
+        $this->cacheStorage->setItem(CacheManagerInterface::KEY_NODE_STATISTICS . '.STABLE_PF1', ['nodesCount' => 1]);
+        $this->cacheStorage->setItem(CacheManagerInterface::KEY_REPORT_STATISTICS . '.STABLE_PF1', ['skips' => 1]);
+        $expectedNodesStatistics = ['nodesCount' => 2];
         $this->nodeStatisticsService->expects($this->any())
             ->method('getAllAsArray')
+            ->with(['=', ['fact', Model\NodeInterface::ENVIRONMENT_FACT], 'STABLE_PF1'])
             ->will($this->returnValue($expectedNodesStatistics));
+        $expectedReportsStatistics = ['failure' => 1, 'success' => 1];
+        $this->reportStatisticsService->expects($this->any())
+            ->method('getAllAsArray')
+            ->with(['=', 'environment', 'STABLE_PF1'])
+            ->will($this->returnValue($expectedReportsStatistics));
+        $parent = new Environment();
+        $parent->setName('STABLE');
+        $environment = new Environment();
+        $environment->setName('PF1');
+        $environment->setParent($parent);
 
-        $this->assertEquals($expectedNodesStatistics, $this->cacheManager->getItem('nodesStatistics'));
-    }
+        $this->cacheManager->refresh($environment);
 
-    /** @test */
-    public function canGetItemFromCache()
-    {
-        $expectedNodesStatistics = [
-            'unchangedCount' => 2,
-            'changedCount' => 1,
-            'failedCount' => 1,
-            'nodesCount' => 9,
-            'osCount' => 2,
-        ];
-        $this->cacheStorage->setItem('nodesStatistics', $expectedNodesStatistics);
-
-        $this->assertEquals($expectedNodesStatistics, $this->cacheManager->getItem('nodesStatistics'));
+        $this->assertEquals($expectedNodesStatistics, $this->cacheStorage->getItem(CacheManagerInterface::KEY_NODE_STATISTICS . '.STABLE_PF1'));
+        $this->assertEquals($expectedReportsStatistics, $this->cacheStorage->getItem(CacheManagerInterface::KEY_REPORT_STATISTICS . '.STABLE_PF1'));
+        $this->assertEquals(CacheManagerInterface::COMPLETED, $this->cacheStorage->getItem(CacheManagerInterface::KEY_CACHE_STATUS . '.STABLE_PF1'));
+        $this->assertEquals(new \DateTime(static::FAKE_DATETIME), $this->cacheStorage->getItem(CacheManagerInterface::KEY_REFRESHED_AT . '.STABLE_PF1'));
     }
 }

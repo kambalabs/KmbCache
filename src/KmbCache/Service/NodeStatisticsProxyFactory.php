@@ -20,6 +20,8 @@
  */
 namespace KmbCache\Service;
 
+use KmbPuppetDb\Service\NodeStatisticsInterface;
+use Zend\Cache\Storage\StorageInterface;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
@@ -34,7 +36,15 @@ class NodeStatisticsProxyFactory implements FactoryInterface
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
         $nodeStatisticsProxy = new NodeStatisticsProxy();
-        $nodeStatisticsProxy->setCacheManager($serviceLocator->get('KmbCache\Service\CacheManager'));
+
+        /** @var NodeStatisticsInterface $nodeStatisticsService */
+        $nodeStatisticsService = $serviceLocator->get('KmbPuppetDb\Service\NodeStatistics');
+        $nodeStatisticsProxy->setNodeStatisticsService($nodeStatisticsService);
+
+        /** @var StorageInterface $cacheStorage */
+        $cacheStorage = $serviceLocator->get('CacheService');
+        $nodeStatisticsProxy->setCacheStorage($cacheStorage);
+
         return $nodeStatisticsProxy;
     }
 }
