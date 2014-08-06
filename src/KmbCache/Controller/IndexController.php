@@ -20,7 +20,7 @@
  */
 namespace KmbCache\Controller;
 
-use KmbCache\Exception\RuntimeException;
+use KmbCache\Service\CacheManagerInterface;
 use KmbDomain\Model\EnvironmentInterface;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Mvc\Exception;
@@ -28,43 +28,16 @@ use Zend\View\Model\JsonModel;
 
 class IndexController extends AbstractActionController
 {
-    public function indexAction()
+    public function refreshExpiredCacheAction()
     {
         $serviceManager = $this->getServiceLocator();
 
         /** @var EnvironmentInterface $environment */
         $environment = $serviceManager->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
 
+        /** @var CacheManagerInterface $cacheManager */
         $cacheManager = $serviceManager->get('KmbCache\Service\CacheManager');
-        /** @var \DateTime $refreshedAt */
-        $refreshedAt = $cacheManager->getRefreshedAt($environment);
-        if ($refreshedAt) {
-            $refreshedAt = $refreshedAt->format(\DateTime::RFC1123);
-        }
-        return new JsonModel([
-            'refreshed_at' => $refreshedAt,
-            'status' => $cacheManager->getStatus($environment),
-        ]);
-    }
-
-    public function refreshAction()
-    {
-        $serviceManager = $this->getServiceLocator();
-
-        /** @var EnvironmentInterface $environment */
-        $environment = $serviceManager->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
-
-        $cacheManager = $serviceManager->get('KmbCache\Service\CacheManager');
-        try {
-            $cacheManager->refresh($environment);
-        } catch (RuntimeException $exception) {
-            $this->getResponse()->setStatusCode(409);
-            return new JsonModel(['message' => $exception->getMessage()]);
-        } catch (\Exception $exception) {
-            $this->getResponse()->setStatusCode(500);
-            echo $exception->getTraceAsString();
-            return new JsonModel(['message' => $exception->getMessage()]);
-        }
+        $cacheManager->refreshExpiredCache($environment);
 
         return new JsonModel(['message' => 'OK']);
     }

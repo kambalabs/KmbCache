@@ -35,16 +35,20 @@ class NodeStatisticsProxyFactory implements FactoryInterface
      */
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
-        $nodeStatisticsProxy = new NodeStatisticsProxy();
+        $service = new NodeStatisticsProxy();
 
         /** @var NodeStatisticsInterface $nodeStatisticsService */
         $nodeStatisticsService = $serviceLocator->get('KmbPuppetDb\Service\NodeStatistics');
-        $nodeStatisticsProxy->setNodeStatisticsService($nodeStatisticsService);
+        $service->setNodeStatisticsService($nodeStatisticsService);
 
         /** @var StorageInterface $cacheStorage */
         $cacheStorage = $serviceLocator->get('CacheService');
-        $nodeStatisticsProxy->setCacheStorage($cacheStorage);
+        $service->setCacheStorage($cacheStorage);
 
-        return $nodeStatisticsProxy;
+        /** @var QuerySuffixBuilder $querySuffixBuilder */
+        $querySuffixBuilder = $serviceLocator->get('KmbCache\Service\QuerySuffixBuilder');
+        $service->setQuerySuffixBuilder($querySuffixBuilder);
+
+        return $service;
     }
 }

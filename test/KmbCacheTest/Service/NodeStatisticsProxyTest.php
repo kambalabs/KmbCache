@@ -3,6 +3,7 @@ namespace KmbCacheTest\Service;
 
 use KmbCache\Service;
 use KmbPuppetDb\Model;
+use KmbPuppetDb\Query\Query;
 use Zend\Cache\Storage\StorageInterface;
 use Zend\Cache\StorageFactory;
 
@@ -21,14 +22,20 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->cacheStorage = StorageFactory::factory(['adapter' => 'memory']);
+        $querySuffixBuilder = $this->getMock('KmbCache\Service\QuerySuffixBuilderInterface');
+        $querySuffixBuilder->expects($this->any())
+            ->method('build')
+            ->will($this->returnCallback(function ($query) {
+                if ($query instanceof Query) {
+                    $query = $query->getData();
+                }
+                return empty($query) ? '' : '.' . $query[2];
+            }));
         $nodeStatisticsService = $this->getMock('KmbPuppetDb\Service\NodeStatistics');
         $nodeStatisticsService->expects($this->any())
             ->method('getAllAsArray')
             ->will($this->returnCallback(function ($query = null) {
-                if (
-                    $query == ['=', ['fact', Model\NodeInterface::ENVIRONMENT_FACT], 'STABLE_PF1'] ||
-                    $query == ['=', 'facts-environment', 'STABLE_PF1']
-                ) {
+                if ($query == ['=', 'facts-environment', 'STABLE_PF1']) {
                     return [
                         'unchangedCount' => 2,
                         'changedCount' => 0,
@@ -87,12 +94,13 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
         $this->nodeStatisticsProxyService = new Service\NodeStatisticsProxy();
         $this->nodeStatisticsProxyService->setNodeStatisticsService($nodeStatisticsService);
         $this->nodeStatisticsProxyService->setCacheStorage($this->cacheStorage);
+        $this->nodeStatisticsProxyService->setQuerySuffixBuilder($querySuffixBuilder);
     }
 
     /** @test */
     public function canGetAllAsArrayFromCache()
     {
-        $this->cacheStorage->setItem(Service\CacheManagerInterface::KEY_NODE_STATISTICS, ['nodesCount' => 1]);
+        $this->cacheStorage->setItem(Service\CacheManager::KEY_NODE_STATISTICS, ['nodesCount' => 1]);
 
         $this->assertEquals(['nodesCount' => 1], $this->nodeStatisticsProxyService->getAllAsArray());
     }
@@ -123,19 +131,9 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     }
 
     /** @test */
-    public function canGetAllAsArrayWithV3QueryOnEnvironmentFromCache()
+    public function canGetAllAsArrayWithQueryFromCache()
     {
-        $this->cacheStorage->setItem(Service\CacheManagerInterface::KEY_NODE_STATISTICS . '.STABLE_PF1', ['nodesCount' => 1]);
-
-        $nodeStatistics = $this->nodeStatisticsProxyService->getAllAsArray(['=', ['fact', Model\NodeInterface::ENVIRONMENT_FACT], 'STABLE_PF1']);
-
-        $this->assertEquals(['nodesCount' => 1], $nodeStatistics);
-    }
-
-    /** @test */
-    public function canGetAllAsArrayWithV4QueryOnEnvironmentFromCache()
-    {
-        $this->cacheStorage->setItem(Service\CacheManagerInterface::KEY_NODE_STATISTICS . '.STABLE_PF1', ['nodesCount' => 1]);
+        $this->cacheStorage->setItem(Service\CacheManager::KEY_NODE_STATISTICS . '.STABLE_PF1', ['nodesCount' => 1]);
 
         $nodeStatistics = $this->nodeStatisticsProxyService->getAllAsArray(['=', 'facts-environment', 'STABLE_PF1']);
 
@@ -143,7 +141,7 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     }
 
     /** @test */
-    public function canGetAllAsArrayWithQueryOnEnvironment()
+    public function canGetAllAsArrayWithQuery()
     {
         $expectedStats = [
             'unchangedCount' => 2,
@@ -164,7 +162,7 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
             'recentlyRebootedNodes' => ['node2.local' => '2:32 hours'],
         ];
 
-        $nodeStatistics = $this->nodeStatisticsProxyService->getAllAsArray(['=', ['fact', Model\NodeInterface::ENVIRONMENT_FACT], 'STABLE_PF1']);
+        $nodeStatistics = $this->nodeStatisticsProxyService->getAllAsArray(['=', 'facts-environment', 'STABLE_PF1']);
 
         $this->assertEquals($expectedStats, $nodeStatistics);
     }
@@ -172,7 +170,7 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetAllAsArrayWithOtherQuery()
     {
-        $this->cacheStorage->setItem(Service\CacheManagerInterface::KEY_NODE_STATISTICS, ['nodesCount' => 1]);
+        $this->cacheStorage->setItem(Service\CacheManager::KEY_NODE_STATISTICS, ['nodesCount' => 1]);
 
         $expectedStat = [
             'unchangedCount' => 1,

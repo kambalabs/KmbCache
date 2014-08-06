@@ -1,10 +1,5 @@
 <?php
 return [
-    'service_manager' => [
-        'invokables' => [
-            'EnvironmentRepository' => 'KmbCacheTest\Infrastructure\Memory\EnvironmentRepository',
-        ]
-    ],
     'router' => [
         'routes' => [
             'index' => [

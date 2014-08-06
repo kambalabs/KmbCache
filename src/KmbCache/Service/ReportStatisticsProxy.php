@@ -20,7 +20,7 @@
  */
 namespace KmbCache\Service;
 
-use KmbPuppetDb\Query;
+use KmbPuppetDb\Query\Query;
 use KmbPuppetDb\Service;
 use Zend\Cache\Storage\StorageInterface;
 
@@ -32,6 +32,9 @@ class ReportStatisticsProxy implements Service\ReportStatisticsInterface
     /** @var Service\ReportStatisticsInterface */
     protected $reportStatisticsService;
 
+    /** @var QuerySuffixBuilderInterface */
+    protected $querySuffixBuilder;
+
     /**
      * Get all statistics as array.
      *
@@ -40,14 +43,8 @@ class ReportStatisticsProxy implements Service\ReportStatisticsInterface
      */
     public function getAllAsArray($query = null)
     {
-        $key = null;
-        if ($query == null) {
-            $key = CacheManagerInterface::KEY_REPORT_STATISTICS;
-        } elseif ($this->isEnvironmentQuery($query)) {
-            $key = CacheManagerInterface::KEY_REPORT_STATISTICS . '.' . $query[2];
-        }
-
-        if ($key != null && $this->getCacheStorage()->hasItem($key)) {
+        $key = CacheManager::KEY_REPORT_STATISTICS . $this->getQuerySuffixBuilder()->build($query);
+        if ($this->getCacheStorage()->hasItem($key)) {
             return $this->getCacheStorage()->getItem($key);
         }
 
@@ -143,6 +140,28 @@ class ReportStatisticsProxy implements Service\ReportStatisticsInterface
     }
 
     /**
+     * Set QuerySuffixBuilder.
+     *
+     * @param \KmbCache\Service\QuerySuffixBuilderInterface $querySuffixBuilder
+     * @return ReportStatisticsProxy
+     */
+    public function setQuerySuffixBuilder($querySuffixBuilder)
+    {
+        $this->querySuffixBuilder = $querySuffixBuilder;
+        return $this;
+    }
+
+    /**
+     * Get QuerySuffixBuilder.
+     *
+     * @return \KmbCache\Service\QuerySuffixBuilderInterface
+     */
+    public function getQuerySuffixBuilder()
+    {
+        return $this->querySuffixBuilder;
+    }
+
+    /**
      * @param             $statistic
      * @param Query|array $query
      * @return mixed
@@ -151,14 +170,5 @@ class ReportStatisticsProxy implements Service\ReportStatisticsInterface
     {
         $allStatistics = $this->getAllAsArray($query);
         return $allStatistics[$statistic];
-    }
-
-    /**
-     * @param $query
-     * @return bool
-     */
-    protected function isEnvironmentQuery($query)
-    {
-        return count($query) === 3 && $query[0] === '=' && $query[1] == 'environment' && !empty($query[2]);
     }
 }

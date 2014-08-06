@@ -20,14 +20,23 @@
  */
 namespace KmbCache\Service;
 
-use KmbDomain\Model\EnvironmentInterface;
+use KmbPuppetDb\Query\Query;
 
-interface CacheManagerInterface
+class QuerySuffixBuilder implements QuerySuffixBuilderInterface
 {
     /**
-     * Refresh cache if necessary.
-     *
-     * @param EnvironmentInterface $environment
+     * @param Query|array $query
+     * @return string
      */
-    public function refreshExpiredCache($environment = null);
+    public function build($query)
+    {
+        if (is_array($query)) {
+            $query = new Query($query);
+        }
+        $data = $query ? $query->getData() : [];
+        if (empty($data)) {
+            return '';
+        }
+        return '_' . sha1($query);
+    }
 }

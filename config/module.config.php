@@ -3,16 +3,16 @@ return [
     'router' => [
         'routes' => [
             'cache' => [
-                'type'    => 'segment',
+                'type'    => 'Segment',
                 'options' => [
-                    'route'    => '/cache[/][:action][/:id]',
+                    'route'    => '[/env/:envId]/refresh-expired-cache',
                     'constraints' => [
-                        'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                        'id'     => '[0-9]+',
+                        'envId' => '[0-9]+',
                     ],
                     'defaults' => [
                         'controller' => 'KmbCache\Controller\Index',
-                        'action'     => 'index',
+                        'action'     => 'refresh-expired-cache',
+                        'envId' => '0',
                     ],
                 ],
             ],
@@ -42,6 +42,9 @@ return [
             'Zend\Cache\Service\StorageCacheAbstractServiceFactory',
             'Zend\Log\LoggerAbstractServiceFactory',
         ],
+        'invokables' => [
+            'KmbCache\Service\QuerySuffixBuilder' => 'KmbCache\Service\QuerySuffixBuilder',
+        ],
         'factories' => [
             'KmbCache\Service\CacheManager' => 'KmbCache\Service\CacheManagerFactory',
             'KmbCache\Service\NodeStatisticsProxy' => 'KmbCache\Service\NodeStatisticsProxyFactory',
@@ -57,7 +60,7 @@ return [
             'ZfcRbac\Guard\ControllerGuard' => [
                 [
                     'controller' => 'KmbCache\Controller\Index',
-                    'actions' => ['index', 'refresh'],
+                    'actions' => ['refresh-expired-cache'],
                     'roles' => ['user']
                 ],
             ]

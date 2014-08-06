@@ -21,7 +21,7 @@
 namespace KmbCache\Service;
 
 use KmbPuppetDb\Model;
-use KmbPuppetDb\Query;
+use KmbPuppetDb\Query\Query;
 use KmbPuppetDb\Service;
 use Zend\Cache\Storage\StorageInterface;
 
@@ -32,6 +32,9 @@ class NodeStatisticsProxy implements Service\NodeStatisticsInterface
 
     /** @var Service\NodeStatisticsInterface */
     protected $nodeStatisticsService;
+
+    /** @var QuerySuffixBuilderInterface */
+    protected $querySuffixBuilder;
 
     /**
      * Get unchanged nodes count.
@@ -129,14 +132,8 @@ class NodeStatisticsProxy implements Service\NodeStatisticsInterface
      */
     public function getAllAsArray($query = null)
     {
-        $key = null;
-        if ($query == null) {
-            $key = CacheManagerInterface::KEY_NODE_STATISTICS;
-        } elseif ($this->isEnvironmentQuery($query)) {
-            $key = CacheManagerInterface::KEY_NODE_STATISTICS . '.' . $query[2];
-        }
-
-        if ($key !== null && $this->getCacheStorage()->hasItem($key)) {
+        $key = CacheManager::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query);
+        if ($this->getCacheStorage()->hasItem($key)) {
             return $this->getCacheStorage()->getItem($key);
         }
 
@@ -184,6 +181,28 @@ class NodeStatisticsProxy implements Service\NodeStatisticsInterface
     }
 
     /**
+     * Set QuerySuffixBuilder.
+     *
+     * @param \KmbCache\Service\QuerySuffixBuilderInterface $querySuffixBuilder
+     * @return NodeStatisticsProxy
+     */
+    public function setQuerySuffixBuilder($querySuffixBuilder)
+    {
+        $this->querySuffixBuilder = $querySuffixBuilder;
+        return $this;
+    }
+
+    /**
+     * Get QuerySuffixBuilder.
+     *
+     * @return \KmbCache\Service\QuerySuffixBuilderInterface
+     */
+    public function getQuerySuffixBuilder()
+    {
+        return $this->querySuffixBuilder;
+    }
+
+    /**
      * @param             $statistic
      * @param Query|array $query
      * @return mixed
@@ -192,18 +211,5 @@ class NodeStatisticsProxy implements Service\NodeStatisticsInterface
     {
         $allStatistics = $this->getAllAsArray($query);
         return $allStatistics[$statistic];
-    }
-
-    /**
-     * @param $query
-     * @return bool
-     */
-    protected function isEnvironmentQuery($query)
-    {
-        return
-            count($query) === 3 &&
-            $query[0] === '=' &&
-            ($query[1] === ['fact', Model\NodeInterface::ENVIRONMENT_FACT] || $query[1] == 'facts-environment') &&
-            !empty($query[2]);
     }
 }

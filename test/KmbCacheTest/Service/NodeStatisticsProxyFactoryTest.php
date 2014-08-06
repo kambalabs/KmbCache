@@ -18,5 +18,6 @@ class NodeStatisticsProxyFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('KmbCache\Service\NodeStatisticsProxy', $service);
         $this->assertInstanceOf('KmbPuppetDb\Service\NodeStatistics', $service->getNodeStatisticsService());
         $this->assertInstanceOf('Zend\Cache\Storage\StorageInterface', $service->getCacheStorage());
+        $this->assertInstanceOf('KmbCache\Service\QuerySuffixBuilder', $service->getQuerySuffixBuilder());
     }
 }

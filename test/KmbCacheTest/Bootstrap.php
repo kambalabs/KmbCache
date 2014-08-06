@@ -45,6 +45,7 @@ class Bootstrap extends AbstractBootstrap
                 'modules' => [
                     'ZfcRbac',
                     'KmbDomain',
+                    'KmbMemoryInfrastructure',
                     'KmbAuthentication',
                     'KmbFakeAuthentication',
                     'KmbPermission',

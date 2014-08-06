@@ -1,18 +1,22 @@
 <?php
 namespace KmbCacheTest\Controller;
 
-use KmbCache\Service\CacheManagerInterface;
-use KmbCacheTest\Bootstrap;
 use KmbBase\FakeDateTimeFactory;
+use KmbCache\Service\CacheManager;
+use KmbCacheTest\Bootstrap;
+use KmbMemoryInfrastructure\Fixtures;
 use KmbPuppetDb\Model;
 use KmbPuppetDbTest\FakeHttpClient;
 use Zend\Cache\Storage\StorageInterface;
 use Zend\Cache\StorageFactory;
+use Zend\ServiceManager\ServiceManager;
 use Zend\Test\PHPUnit\Controller\AbstractHttpControllerTestCase;
 
 class IndexControllerTest extends AbstractHttpControllerTestCase
 {
     const FAKE_DATETIME = '2014-01-31 10:00:00';
+
+    use Fixtures;
     protected $traceError = true;
 
     /**
@@ -24,6 +28,7 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
     {
         $this->setApplicationConfig(Bootstrap::getApplicationConfig());
         parent::setUp();
+        $this->initFixtures();
         $this->cacheStorage = StorageFactory::factory(['adapter' => ['name' => 'memory']]);
         $serviceManager = $this->getApplicationServiceLocator();
         $serviceManager->setAllowOverride(true);
@@ -33,26 +38,9 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
     }
 
     /** @test */
-    public function canGetIndex()
+    public function canRefreshExpiredCache()
     {
-        $now = new \DateTime();
-        $this->cacheStorage->setItem('refreshedAt', $now);
-        $this->cacheStorage->setItem('cacheStatus', CacheManagerInterface::PENDING);
-
-        $this->dispatch('/cache');
-
-        $this->assertResponseStatusCode(200);
-        $this->assertControllerName('KmbCache\Controller\Index');
-        $this->assertResponseHeaderContains('Content-Type', 'application/json; charset=utf-8');
-        $this->assertEquals('{"refreshed_at":"' . $now->format(\DateTime::RFC1123) . '","status":"pending"}', $this->getResponse()->getContent());
-    }
-
-    /** @test */
-    public function canRefreshCache()
-    {
-        $this->cacheStorage->setItem(CacheManagerInterface::KEY_NODE_STATISTICS, ['nodesCount' => 1]);
-
-        $this->dispatch('/cache/refresh');
+        $this->dispatch('/refresh-expired-cache');
 
         $this->assertResponseStatusCode(200);
         $this->assertControllerName('KmbCache\Controller\Index');
@@ -86,19 +74,15 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
                     'node7.local' => '3:02 hours',
                     'node8.local' => '0:23 hours',
                 ],
-            ], $this->cacheStorage->getItem(CacheManagerInterface::KEY_NODE_STATISTICS)
+            ], $this->cacheStorage->getItem(CacheManager::KEY_NODE_STATISTICS)
         );
     }
 
-    /** @test */
-    public function cannotRefreshCacheIfPending()
+    /**
+     * @return ServiceManager
+     */
+    public function getServiceManager()
     {
-        $this->cacheStorage->setItem('cacheStatus', CacheManagerInterface::PENDING);
-
-        $this->dispatch('/cache/refresh');
-
-        $this->assertResponseStatusCode(409);
-        $this->assertControllerName('KmbCache\Controller\Index');
-        $this->assertEquals('{"message":"Cache refresh is already in progress"}', $this->getResponse()->getContent());
+        return $this->getApplicationServiceLocator();
     }
 }

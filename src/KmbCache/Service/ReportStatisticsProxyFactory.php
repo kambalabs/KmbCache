@@ -45,6 +45,10 @@ class ReportStatisticsProxyFactory implements FactoryInterface
         $cacheStorage = $serviceLocator->get('CacheService');
         $service->setCacheStorage($cacheStorage);
 
+        /** @var QuerySuffixBuilder $querySuffixBuilder */
+        $querySuffixBuilder = $serviceLocator->get('KmbCache\Service\QuerySuffixBuilder');
+        $service->setQuerySuffixBuilder($querySuffixBuilder);
+
         return $service;
     }
 }

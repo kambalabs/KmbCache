@@ -21,9 +21,9 @@
 namespace KmbCache\Service;
 
 use KmbBase\DateTimeFactoryInterface;
-use KmbCache\Exception\RuntimeException;
 use KmbDomain\Model\EnvironmentInterface;
-use KmbPuppetDb\Model\NodeInterface;
+use KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface;
+use KmbPuppetDb\Query\Query;
 use KmbPuppetDb\Service\NodeStatisticsInterface;
 use KmbPuppetDb\Service\ReportStatisticsInterface;
 use Zend\Cache\Storage\StorageInterface;
@@ -35,6 +35,14 @@ use Zend\Cache\Storage\StorageInterface;
  */
 class CacheManager implements CacheManagerInterface
 {
+    const STATUS_SUFFIX = '.status';
+    const REFRESHED_AT_SUFFIX = '.refreshedAt';
+    const KEY_NODE_STATISTICS = 'nodeStatistics';
+    const KEY_REPORT_STATISTICS = 'reportStatistics';
+    const PENDING = 'pending';
+    const COMPLETED = 'completed';
+    const EXPIRATION_TIME = '5 minutes';
+
     /** @var NodeStatisticsInterface */
     protected $nodeStatisticsService;
 
@@ -47,58 +55,54 @@ class CacheManager implements CacheManagerInterface
     /** @var DateTimeFactoryInterface */
     protected $dateTimeFactory;
 
+    /** @var QuerySuffixBuilderInterface */
+    protected $querySuffixBuilder;
+
+    /** @var EnvironmentsQueryBuilderInterface */
+    protected $nodesEnvironmentsQueryBuilder;
+
+    /** @var EnvironmentsQueryBuilderInterface */
+    protected $reportsEnvironmentsQueryBuilder;
+
+    /** @var \KmbPermission\Service\EnvironmentInterface */
+    protected $permissionEnvironmentService;
+
     /**
-     * Refresh cache
+     * Refresh cache if necessary.
      *
      * @param EnvironmentInterface $environment
-     * @param bool                 $forceOnPending Allows to refresh cache even if the status is pending.
-     * @throws RuntimeException When the cache status is pending (and $forceOnPending is false).
      */
-    public function refresh($environment = null, $forceOnPending = false)
+    public function refreshExpiredCache($environment = null)
     {
-        if (!$forceOnPending && $this->getCacheStorage()->getItem($this->statusKey($environment)) == static::PENDING) {
-            throw new RuntimeException('Cache refresh is already in progress');
-        }
+        $environments = $this->permissionEnvironmentService->getAllReadable($environment);
 
-        /** TODO: Query will be ['=', 'facts-environment', $environment->getNormalizedName()] when PuppetDB v4 API will be stable */
-        $nodeStatistics = $this->getNodeStatisticsService()->getAllAsArray($environment ? ['=', ['fact', NodeInterface::ENVIRONMENT_FACT], $environment->getNormalizedName()] : null);
-        $reportStatistics = $this->getReportStatisticsService()->getAllAsArray($environment ? ['=', 'environment', $environment->getNormalizedName()] : null);
+        $query = $this->getNodesEnvironmentsQueryBuilder()->build($environments);
+        $this->refresh(static::KEY_NODE_STATISTICS, $query, function ($query) {
+            return $this->getNodeStatisticsService()->getAllAsArray($query);
+        });
 
-        $this->getCacheStorage()->setItem($this->statusKey($environment), static::PENDING);
-        $this->getCacheStorage()->setItem($this->nodeStatisticsKey($environment), $nodeStatistics);
-        $this->getCacheStorage()->setItem($this->reportStatisticsKey($environment), $reportStatistics);
-        $this->getCacheStorage()->setItem($this->statusKey($environment), static::COMPLETED);
-        $this->getCacheStorage()->setItem($this->refreshedAtKey($environment), $this->getDateTimeFactory()->now());
+        $query = $this->getReportsEnvironmentsQueryBuilder()->build($environments);
+        $this->refresh(static::KEY_REPORT_STATISTICS, $query, function ($query) {
+            return $this->getReportStatisticsService()->getAllAsArray($query);
+        });
     }
 
     /**
-     * Force refreshing cache
-     *
-     * @param EnvironmentInterface $environment
-     * @throws RuntimeException When the cache status is pending (and $force is false).
-     */
-    public function forceRefresh($environment = null)
-    {
-    }
-
-    /**
-     * Get the status of the cache (null|pending|completed)
-     *
+     * @param $key
      * @return string
      */
-    public function getStatus()
+    public static function statusKeyFor($key)
     {
-        return $this->getCacheStorage()->getItem(static::KEY_CACHE_STATUS);
+        return $key . static::STATUS_SUFFIX;
     }
 
     /**
-     * Get the time of the last refresh
-     *
-     * @return \DateTime
+     * @param $key
+     * @return string
      */
-    public function getRefreshedAt()
+    public static function refreshedAtKeyFor($key)
     {
-        return $this->getCacheStorage()->getItem(static::KEY_REFRESHED_AT);
+        return $key . static::REFRESHED_AT_SUFFIX;
     }
 
     /**
@@ -174,48 +178,117 @@ class CacheManager implements CacheManagerInterface
     }
 
     /**
-     * @param $key
-     * @param EnvironmentInterface $environment
-     * @return string
+     * Set QuerySuffixBuilder.
+     *
+     * @param \KmbCache\Service\QuerySuffixBuilderInterface $querySuffixBuilder
+     * @return CacheManager
      */
-    protected function key($key, $environment)
+    public function setQuerySuffixBuilder($querySuffixBuilder)
     {
-        return $environment == null ? $key : $key . '.' . $environment->getNormalizedName();
+        $this->querySuffixBuilder = $querySuffixBuilder;
+        return $this;
     }
 
     /**
-     * @param $environment
-     * @return string
+     * Get QuerySuffixBuilder.
+     *
+     * @return \KmbCache\Service\QuerySuffixBuilderInterface
      */
-    protected function nodeStatisticsKey($environment)
+    public function getQuerySuffixBuilder()
     {
-        return $this->key(static::KEY_NODE_STATISTICS, $environment);
+        return $this->querySuffixBuilder;
     }
 
     /**
-     * @param $environment
-     * @return string
+     * Set NodesEnvironmentsQueryBuilder.
+     *
+     * @param \KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface $nodesEnvironmentsQueryBuilder
+     * @return CacheManager
      */
-    protected function reportStatisticsKey($environment)
+    public function setNodesEnvironmentsQueryBuilder($nodesEnvironmentsQueryBuilder)
     {
-        return $this->key(static::KEY_REPORT_STATISTICS, $environment);
+        $this->nodesEnvironmentsQueryBuilder = $nodesEnvironmentsQueryBuilder;
+        return $this;
     }
 
     /**
-     * @param $environment
-     * @return string
+     * Get NodesEnvironmentsQueryBuilder.
+     *
+     * @return \KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface
      */
-    protected function refreshedAtKey($environment)
+    public function getNodesEnvironmentsQueryBuilder()
     {
-        return $this->key(static::KEY_REFRESHED_AT, $environment);
+        return $this->nodesEnvironmentsQueryBuilder;
     }
 
     /**
-     * @param $environment
-     * @return string
+     * Set ReportsEnvironmentsQueryBuilder.
+     *
+     * @param \KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface $reportsEnvironmentsQueryBuilder
+     * @return CacheManager
      */
-    protected function statusKey($environment)
+    public function setReportsEnvironmentsQueryBuilder($reportsEnvironmentsQueryBuilder)
     {
-        return $this->key(static::KEY_CACHE_STATUS, $environment);
+        $this->reportsEnvironmentsQueryBuilder = $reportsEnvironmentsQueryBuilder;
+        return $this;
+    }
+
+    /**
+     * Get ReportsEnvironmentsQueryBuilder.
+     *
+     * @return \KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface
+     */
+    public function getReportsEnvironmentsQueryBuilder()
+    {
+        return $this->reportsEnvironmentsQueryBuilder;
+    }
+
+    /**
+     * Set PermissionEnvironmentService.
+     *
+     * @param \KmbPermission\Service\EnvironmentInterface $permissionEnvironmentService
+     * @return CacheManager
+     */
+    public function setPermissionEnvironmentService($permissionEnvironmentService)
+    {
+        $this->permissionEnvironmentService = $permissionEnvironmentService;
+        return $this;
+    }
+
+    /**
+     * Get PermissionEnvironmentService.
+     *
+     * @return \KmbPermission\Service\EnvironmentInterface
+     */
+    public function getPermissionEnvironmentService()
+    {
+        return $this->permissionEnvironmentService;
+    }
+
+    /**
+     * @param string   $key
+     * @param Query    $query
+     * @param callback $getRealDataCallback
+     */
+    protected function refresh($key, $query, $getRealDataCallback)
+    {
+        $cacheStorage = $this->getCacheStorage();
+        $suffix = $this->getQuerySuffixBuilder()->build($query);
+
+        $status = $cacheStorage->getItem($this->statusKeyFor($key . $suffix));
+        $refreshedAt = $cacheStorage->getItem($this->refreshedAtKeyFor($key . $suffix));
+        if (
+            $status !== static::PENDING &&
+            (
+                $refreshedAt == null ||
+                $this->getDateTimeFactory()->now() > $refreshedAt->add(\DateInterval::createFromDateString(self::EXPIRATION_TIME))
+            )
+        ) {
+            $cacheStorage->setItem($this->statusKeyFor($key . $suffix), static::PENDING);
+            $data = $getRealDataCallback($query);
+            $cacheStorage->setItem($key . $suffix, $data);
+            $cacheStorage->setItem($this->statusKeyFor($key . $suffix), static::COMPLETED);
+            $cacheStorage->setItem($this->refreshedAtKeyFor($key . $suffix), $this->getDateTimeFactory()->now());
+        }
     }
 }

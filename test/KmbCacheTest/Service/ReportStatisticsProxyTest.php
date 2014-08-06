@@ -3,6 +3,7 @@ namespace KmbCacheTest\Service;
 
 use KmbCache\Service;
 use KmbPuppetDb\Model;
+use KmbPuppetDb\Query\Query;
 use Zend\Cache\Storage\StorageInterface;
 use Zend\Cache\StorageFactory;
 
@@ -21,6 +22,15 @@ class ReportStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->cacheStorage = StorageFactory::factory(['adapter' => 'memory']);
+        $querySuffixBuilder = $this->getMock('KmbCache\Service\QuerySuffixBuilderInterface');
+        $querySuffixBuilder->expects($this->any())
+            ->method('build')
+            ->will($this->returnCallback(function ($query) {
+                if ($query instanceof Query) {
+                    $query = $query->getData();
+                }
+                return empty($query) ? '' : '.' . $query[2];
+            }));
         $reportStatisticsService = $this->getMock('KmbPuppetDb\Service\ReportStatistics');
         $reportStatisticsService->expects($this->any())
             ->method('getAllAsArray')
@@ -50,12 +60,13 @@ class ReportStatisticsProxyTest extends \PHPUnit_Framework_TestCase
         $this->reportStatisticsProxyService = new Service\ReportStatisticsProxy();
         $this->reportStatisticsProxyService->setReportStatisticsService($reportStatisticsService);
         $this->reportStatisticsProxyService->setCacheStorage($this->cacheStorage);
+        $this->reportStatisticsProxyService->setQuerySuffixBuilder($querySuffixBuilder);
     }
 
     /** @test */
     public function canGetAllAsArrayFromCache()
     {
-        $this->cacheStorage->setItem(Service\CacheManagerInterface::KEY_REPORT_STATISTICS, ['skips' => 2]);
+        $this->cacheStorage->setItem(Service\CacheManager::KEY_REPORT_STATISTICS, ['skips' => 2]);
 
         $this->assertEquals(['skips' => 2], $this->reportStatisticsProxyService->getAllAsArray());
     }
@@ -74,9 +85,9 @@ class ReportStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     }
 
     /** @test */
-    public function canGetAllAsArrayWithQueryOnEnvironmentFromCache()
+    public function canGetAllAsArrayWithQueryFromCache()
     {
-        $this->cacheStorage->setItem(Service\CacheManagerInterface::KEY_REPORT_STATISTICS . '.STABLE_PF1', ['skips' => 1]);
+        $this->cacheStorage->setItem(Service\CacheManager::KEY_REPORT_STATISTICS . '.STABLE_PF1', ['skips' => 1]);
 
         $reportStatistics = $this->reportStatisticsProxyService->getAllAsArray(['=', 'environment', 'STABLE_PF1']);
 
@@ -84,7 +95,7 @@ class ReportStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     }
 
     /** @test */
-    public function canGetAllAsArrayWithQueryOnEnvironment()
+    public function canGetAllAsArrayWithQuery()
     {
         $expectedStats = [
             'skips' => 1,
@@ -101,7 +112,7 @@ class ReportStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetAllAsArrayWithOtherQuery()
     {
-        $this->cacheStorage->setItem(Service\CacheManagerInterface::KEY_REPORT_STATISTICS, ['nodesCount' => 1]);
+        $this->cacheStorage->setItem(Service\CacheManager::KEY_REPORT_STATISTICS, ['skips' => 1]);
 
         $expectedStat = [
             'skips' => 2,
