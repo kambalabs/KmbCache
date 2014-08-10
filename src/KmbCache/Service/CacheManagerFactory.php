@@ -21,6 +21,7 @@
 namespace KmbCache\Service;
 
 use KmbPermission\Service\EnvironmentInterface;
+use KmbPmProxy\Service\ModuleInterface;
 use KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface;
 use KmbPuppetDb\Service;
 use Zend\ServiceManager\FactoryInterface;
@@ -62,6 +63,10 @@ class CacheManagerFactory implements FactoryInterface
         /** @var EnvironmentInterface $permissionEnvironmentService */
         $permissionEnvironmentService = $serviceLocator->get('KmbPermission\Service\Environment');
         $cacheManager->setPermissionEnvironmentService($permissionEnvironmentService);
+
+        /** @var ModuleInterface $moduleService */
+        $moduleService = $serviceLocator->get('KmbPmProxy\Service\Module');
+        $cacheManager->setPmProxyModuleService($moduleService);
 
         $cacheManager->setDateTimeFactory($serviceLocator->get('DateTimeFactory'));
         return $cacheManager;

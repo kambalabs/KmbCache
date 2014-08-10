@@ -5,9 +5,10 @@ return [
             'cache' => [
                 'type'    => 'Segment',
                 'options' => [
-                    'route'    => '[/env/:envId]/refresh-expired-cache',
+                    'route'    => '[/env/:envId]/:action',
                     'constraints' => [
                         'envId' => '[0-9]+',
+                        'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
                     ],
                     'defaults' => [
                         'controller' => 'KmbCache\Controller\Index',
@@ -49,10 +50,12 @@ return [
             'KmbCache\Service\CacheManager' => 'KmbCache\Service\CacheManagerFactory',
             'KmbCache\Service\NodeStatisticsProxy' => 'KmbCache\Service\NodeStatisticsProxyFactory',
             'KmbCache\Service\ReportStatisticsProxy' => 'KmbCache\Service\ReportStatisticsProxyFactory',
+            'KmbCache\Service\ModuleProxy' => 'KmbCache\Service\ModuleProxyFactory',
         ],
         'aliases' => [
             'nodeStatisticsService' => 'KmbCache\Service\NodeStatisticsProxy',
             'reportStatisticsService' => 'KmbCache\Service\ReportStatisticsProxy',
+            'pmProxyModuleService' => 'KmbCache\Service\ModuleProxy',
         ],
     ],
     'zfc_rbac' => [
@@ -60,7 +63,7 @@ return [
             'ZfcRbac\Guard\ControllerGuard' => [
                 [
                     'controller' => 'KmbCache\Controller\Index',
-                    'actions' => ['refresh-expired-cache'],
+                    'actions' => ['refresh-expired-cache', 'clear-cache'],
                     'roles' => ['user']
                 ],
             ]

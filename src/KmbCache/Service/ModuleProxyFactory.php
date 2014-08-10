@@ -20,21 +20,31 @@
  */
 namespace KmbCache\Service;
 
-use KmbDomain\Model\EnvironmentInterface;
+use KmbPmProxy\Service\Module;
+use Zend\Cache\Storage\StorageInterface;
+use Zend\ServiceManager\FactoryInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
 
-interface CacheManagerInterface
+class ModuleProxyFactory implements FactoryInterface
 {
     /**
-     * Refresh cache if necessary.
+     * Create service
      *
-     * @param EnvironmentInterface $environment
+     * @param ServiceLocatorInterface $serviceLocator
+     * @return mixed
      */
-    public function refreshExpiredCache($environment = null);
+    public function createService(ServiceLocatorInterface $serviceLocator)
+    {
+        $proxy = new ModuleProxy();
 
-    /**
-     * Clear cache.
-     *
-     * @param EnvironmentInterface $environment
-     */
-    public function clearCache($environment = null);
+        /** @var Module $realService */
+        $realService = $serviceLocator->get('KmbPmProxy\Service\Module');
+        $proxy->setPmProxyModuleService($realService);
+
+        /** @var StorageInterface $cacheStorage */
+        $cacheStorage = $serviceLocator->get('CacheService');
+        $proxy->setCacheStorage($cacheStorage);
+
+        return $proxy;
+    }
 }

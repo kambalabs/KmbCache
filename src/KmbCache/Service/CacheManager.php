@@ -22,8 +22,8 @@ namespace KmbCache\Service;
 
 use KmbBase\DateTimeFactoryInterface;
 use KmbDomain\Model\EnvironmentInterface;
+use KmbPmProxy\Service\ModuleInterface;
 use KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface;
-use KmbPuppetDb\Query\Query;
 use KmbPuppetDb\Service\NodeStatisticsInterface;
 use KmbPuppetDb\Service\ReportStatisticsInterface;
 use Zend\Cache\Storage\StorageInterface;
@@ -39,6 +39,7 @@ class CacheManager implements CacheManagerInterface
     const REFRESHED_AT_SUFFIX = '.refreshedAt';
     const KEY_NODE_STATISTICS = 'nodeStatistics';
     const KEY_REPORT_STATISTICS = 'reportStatistics';
+    const KEY_MODULES = 'modules.';
     const PENDING = 'pending';
     const COMPLETED = 'completed';
     const EXPIRATION_TIME = '5 minutes';
@@ -67,24 +68,69 @@ class CacheManager implements CacheManagerInterface
     /** @var \KmbPermission\Service\EnvironmentInterface */
     protected $permissionEnvironmentService;
 
+    /** @var ModuleInterface */
+    protected $pmProxyModuleService;
+
     /**
      * Refresh cache if necessary.
+     * Return true if some cache has been refreshed.
      *
      * @param EnvironmentInterface $environment
+     * @return bool
      */
     public function refreshExpiredCache($environment = null)
     {
         $environments = $this->permissionEnvironmentService->getAllReadable($environment);
 
         $query = $this->getNodesEnvironmentsQueryBuilder()->build($environments);
-        $this->refresh(static::KEY_NODE_STATISTICS, $query, function ($query) {
+        $suffix = $this->getQuerySuffixBuilder()->build($query);
+        $refreshNodes = $this->refresh(static::KEY_NODE_STATISTICS . $suffix, function () use ($query) {
             return $this->getNodeStatisticsService()->getAllAsArray($query);
         });
 
         $query = $this->getReportsEnvironmentsQueryBuilder()->build($environments);
-        $this->refresh(static::KEY_REPORT_STATISTICS, $query, function ($query) {
+        $suffix = $this->getQuerySuffixBuilder()->build($query);
+        $refreshReports = $this->refresh(static::KEY_REPORT_STATISTICS . $suffix, function () use ($query) {
             return $this->getReportStatisticsService()->getAllAsArray($query);
         });
+
+        $refreshModules = false;
+        if ($environment != null) {
+            $refreshModules = $this->refresh(static::KEY_MODULES . $environment->getNormalizedName(), function () use ($environment) {
+                return $this->getPmProxyModuleService()->getAllByEnvironment($environment);
+            });
+        }
+
+        return $refreshNodes || $refreshReports || $refreshModules;
+    }
+
+    /**
+     * Clear cache.
+     *
+     * @param EnvironmentInterface $environment
+     */
+    public function clearCache($environment = null)
+    {
+        $environments = $this->permissionEnvironmentService->getAllReadable($environment);
+
+        $query = $this->getNodesEnvironmentsQueryBuilder()->build($environments);
+        $key = static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query);
+        $this->cacheStorage->removeItem($key);
+        $this->cacheStorage->removeItem($this->statusKeyFor($key));
+        $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
+
+        $query = $this->getReportsEnvironmentsQueryBuilder()->build($environments);
+        $key = static::KEY_REPORT_STATISTICS . $this->getQuerySuffixBuilder()->build($query);
+        $this->cacheStorage->removeItem($key);
+        $this->cacheStorage->removeItem($this->statusKeyFor($key));
+        $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
+
+        if ($environment != null) {
+            $key = static::KEY_MODULES . $environment->getNormalizedName();
+            $this->cacheStorage->removeItem($key);
+            $this->cacheStorage->removeItem($this->statusKeyFor($key));
+            $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
+        }
     }
 
     /**
@@ -139,6 +185,28 @@ class CacheManager implements CacheManagerInterface
     {
         $this->reportStatisticsService = $reportStatisticsService;
         return $this;
+    }
+
+    /**
+     * Set PmProxyModuleService.
+     *
+     * @param \KmbPmProxy\Service\ModuleInterface $pmProxyModuleService
+     * @return CacheManager
+     */
+    public function setPmProxyModuleService($pmProxyModuleService)
+    {
+        $this->pmProxyModuleService = $pmProxyModuleService;
+        return $this;
+    }
+
+    /**
+     * Get PmProxyModuleService.
+     *
+     * @return \KmbPmProxy\Service\ModuleInterface
+     */
+    public function getPmProxyModuleService()
+    {
+        return $this->pmProxyModuleService;
     }
 
     /**
@@ -267,16 +335,15 @@ class CacheManager implements CacheManagerInterface
 
     /**
      * @param string   $key
-     * @param Query    $query
      * @param callback $getRealDataCallback
+     * @return bool
      */
-    protected function refresh($key, $query, $getRealDataCallback)
+    protected function refresh($key, $getRealDataCallback)
     {
         $cacheStorage = $this->getCacheStorage();
-        $suffix = $this->getQuerySuffixBuilder()->build($query);
 
-        $status = $cacheStorage->getItem($this->statusKeyFor($key . $suffix));
-        $refreshedAt = $cacheStorage->getItem($this->refreshedAtKeyFor($key . $suffix));
+        $status = $cacheStorage->getItem($this->statusKeyFor($key));
+        $refreshedAt = $cacheStorage->getItem($this->refreshedAtKeyFor($key));
         if (
             $status !== static::PENDING &&
             (
@@ -284,11 +351,13 @@ class CacheManager implements CacheManagerInterface
                 $this->getDateTimeFactory()->now() > $refreshedAt->add(\DateInterval::createFromDateString(self::EXPIRATION_TIME))
             )
         ) {
-            $cacheStorage->setItem($this->statusKeyFor($key . $suffix), static::PENDING);
-            $data = $getRealDataCallback($query);
-            $cacheStorage->setItem($key . $suffix, $data);
-            $cacheStorage->setItem($this->statusKeyFor($key . $suffix), static::COMPLETED);
-            $cacheStorage->setItem($this->refreshedAtKeyFor($key . $suffix), $this->getDateTimeFactory()->now());
+            $cacheStorage->setItem($this->statusKeyFor($key), static::PENDING);
+            $data = $getRealDataCallback();
+            $cacheStorage->setItem($key, $data);
+            $cacheStorage->setItem($this->statusKeyFor($key), static::COMPLETED);
+            $cacheStorage->setItem($this->refreshedAtKeyFor($key), $this->getDateTimeFactory()->now());
+            return true;
         }
+        return false;
     }
 }

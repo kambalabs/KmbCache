@@ -37,7 +37,24 @@ class IndexController extends AbstractActionController
 
         /** @var CacheManagerInterface $cacheManager */
         $cacheManager = $serviceManager->get('KmbCache\Service\CacheManager');
-        $cacheManager->refreshExpiredCache($environment);
+        $refresh = $cacheManager->refreshExpiredCache($environment);
+
+        return new JsonModel([
+            'message' => 'OK',
+            'refresh' => $refresh
+        ]);
+    }
+
+    public function clearCacheAction()
+    {
+        $serviceManager = $this->getServiceLocator();
+
+        /** @var EnvironmentInterface $environment */
+        $environment = $serviceManager->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
+
+        /** @var CacheManagerInterface $cacheManager */
+        $cacheManager = $serviceManager->get('KmbCache\Service\CacheManager');
+        $cacheManager->clearCache($environment);
 
         return new JsonModel(['message' => 'OK']);
     }

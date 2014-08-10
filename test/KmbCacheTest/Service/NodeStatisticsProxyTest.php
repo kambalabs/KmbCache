@@ -9,14 +9,10 @@ use Zend\Cache\StorageFactory;
 
 class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @var StorageInterface
-     */
+    /** @var StorageInterface */
     protected $cacheStorage;
 
-    /**
-     * @var Service\NodeStatisticsProxy
-     */
+    /** @var Service\NodeStatisticsProxy */
     protected $nodeStatisticsProxyService;
 
     protected function setUp()

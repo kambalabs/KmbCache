@@ -44,7 +44,7 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
 
         $this->assertResponseStatusCode(200);
         $this->assertControllerName('KmbCache\Controller\Index');
-        $this->assertEquals('{"message":"OK"}', $this->getResponse()->getContent());
+        $this->assertEquals('{"message":"OK","refresh":true}', $this->getResponse()->getContent());
         $this->assertEquals(
             [
                 'unchangedCount' => 5,
@@ -75,6 +75,18 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
                     'node8.local' => '0:23 hours',
                 ],
             ], $this->cacheStorage->getItem(CacheManager::KEY_NODE_STATISTICS)
+        );
+    }
+
+    /** @test */
+    public function canClearCache()
+    {
+        $this->dispatch('/clear-cache');
+
+        $this->assertResponseStatusCode(200);
+        $this->assertControllerName('KmbCache\Controller\Index');
+        $this->assertEquals('{"message":"OK"}', $this->getResponse()->getContent());
+        $this->assertFalse($this->cacheStorage->hasItem(CacheManager::KEY_NODE_STATISTICS)
         );
     }
 
