@@ -25,5 +25,6 @@ class CacheManagerFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface', $cacheManager->getReportsEnvironmentsQueryBuilder());
         $this->assertInstanceOf('KmbPermission\Service\Environment', $cacheManager->getPermissionEnvironmentService());
         $this->assertInstanceOf('KmbPmProxy\Service\ModuleInterface', $cacheManager->getPmProxyModuleService());
+        $this->assertInstanceOf('Zend\Log\Logger', $cacheManager->getLogger());
     }
 }

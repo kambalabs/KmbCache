@@ -24,6 +24,7 @@ use KmbPermission\Service\EnvironmentInterface;
 use KmbPmProxy\Service\ModuleInterface;
 use KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface;
 use KmbPuppetDb\Service;
+use Zend\Log\Logger;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
@@ -67,6 +68,10 @@ class CacheManagerFactory implements FactoryInterface
         /** @var ModuleInterface $moduleService */
         $moduleService = $serviceLocator->get('KmbPmProxy\Service\Module');
         $cacheManager->setPmProxyModuleService($moduleService);
+
+        /** @var Logger $logger */
+        $logger = $serviceLocator->get('Logger');
+        $cacheManager->setLogger($logger);
 
         $cacheManager->setDateTimeFactory($serviceLocator->get('DateTimeFactory'));
         return $cacheManager;

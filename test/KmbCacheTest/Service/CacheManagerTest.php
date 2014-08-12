@@ -3,6 +3,7 @@ namespace KmbCacheTest\Service;
 
 use KmbBase\FakeDateTimeFactory;
 use KmbCache\Service\CacheManager;
+use KmbCacheTest\Bootstrap;
 use KmbDomain\Model\Environment;
 use KmbDomain\Model\EnvironmentInterface;
 use KmbPmProxy\Model\Module;
@@ -81,6 +82,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
         $this->cacheManager->setNodesEnvironmentsQueryBuilder(new NodesV4EnvironmentsQueryBuilder());
         $this->cacheManager->setPermissionEnvironmentService($permissionEnvironmentService);
         $this->cacheManager->setPmProxyModuleService($this->pmProxyModuleService);
+        $this->cacheManager->setLogger(Bootstrap::getServiceManager()->get('Logger'));
     }
 
     /** @test */

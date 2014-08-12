@@ -27,6 +27,7 @@ use KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface;
 use KmbPuppetDb\Service\NodeStatisticsInterface;
 use KmbPuppetDb\Service\ReportStatisticsInterface;
 use Zend\Cache\Storage\StorageInterface;
+use Zend\Log\Logger;
 
 /**
  * Class CacheManager
@@ -70,6 +71,9 @@ class CacheManager implements CacheManagerInterface
 
     /** @var ModuleInterface */
     protected $pmProxyModuleService;
+
+    /** @var Logger */
+    protected $logger;
 
     /**
      * Refresh cache if necessary.
@@ -334,16 +338,36 @@ class CacheManager implements CacheManagerInterface
     }
 
     /**
+     * Set Logger.
+     *
+     * @param \Zend\Log\Logger $logger
+     * @return CacheManager
+     */
+    public function setLogger($logger)
+    {
+        $this->logger = $logger;
+        return $this;
+    }
+
+    /**
+     * Get Logger.
+     *
+     * @return \Zend\Log\Logger
+     */
+    public function getLogger()
+    {
+        return $this->logger;
+    }
+
+    /**
      * @param string   $key
      * @param callback $getRealDataCallback
      * @return bool
      */
     protected function refresh($key, $getRealDataCallback)
     {
-        $cacheStorage = $this->getCacheStorage();
-
-        $status = $cacheStorage->getItem($this->statusKeyFor($key));
-        $refreshedAt = $cacheStorage->getItem($this->refreshedAtKeyFor($key));
+        $status = $this->cacheStorage->getItem($this->statusKeyFor($key));
+        $refreshedAt = $this->cacheStorage->getItem($this->refreshedAtKeyFor($key));
         if (
             $status !== static::PENDING &&
             (
@@ -351,11 +375,13 @@ class CacheManager implements CacheManagerInterface
                 $this->getDateTimeFactory()->now() > $refreshedAt->add(\DateInterval::createFromDateString(self::EXPIRATION_TIME))
             )
         ) {
-            $cacheStorage->setItem($this->statusKeyFor($key), static::PENDING);
+            $this->logger->debug("Refreshing cache for $key ...");
+            $this->cacheStorage->setItem($this->statusKeyFor($key), static::PENDING);
             $data = $getRealDataCallback();
-            $cacheStorage->setItem($key, $data);
-            $cacheStorage->setItem($this->statusKeyFor($key), static::COMPLETED);
-            $cacheStorage->setItem($this->refreshedAtKeyFor($key), $this->getDateTimeFactory()->now());
+            $this->cacheStorage->setItem($key, $data);
+            $this->cacheStorage->setItem($this->statusKeyFor($key), static::COMPLETED);
+            $this->cacheStorage->setItem($this->refreshedAtKeyFor($key), $this->getDateTimeFactory()->now());
+            $this->logger->debug("Cache for $key has been refreshed !");
             return true;
         }
         return false;
