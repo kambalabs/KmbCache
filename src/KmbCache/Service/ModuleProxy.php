@@ -47,6 +47,17 @@ class ModuleProxy implements ModuleInterface
     }
 
     /**
+     * @param KmbDomain\Model\EnvironmentInterface $environment
+     * @param string                               $name
+     * @return KmbPmProxy\Model\Module
+     */
+    public function getByEnvironmentAndName(KmbDomain\Model\EnvironmentInterface $environment, $name)
+    {
+        $modules = $this->getAllByEnvironment($environment);
+        return isset($modules[$name]) ? $modules[$name] : null;
+    }
+
+    /**
      * Set CacheStorage.
      *
      * @param \Zend\Cache\Storage\StorageInterface $cacheStorage

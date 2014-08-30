@@ -63,4 +63,48 @@ class ModuleProxyTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($expectedModules, $modules);
     }
+
+    /** @test */
+    public function cannotGetUnknownModuleByEnvironmentAndNameWhenCacheIsEmpty()
+    {
+        $this->moduleService->expects($this->any())
+            ->method('getAllByEnvironment')
+            ->will($this->returnValue([
+                new Module('apache', '2.1.3'),
+                new Module('mysql', '0.2.8'),
+            ]));
+
+        $module = $this->proxy->getByEnvironmentAndName($this->environment, 'unknown');
+
+        $this->assertNull($module);
+    }
+
+    /** @test */
+    public function canGetByEnvironmentAndNameFromCache()
+    {
+        $expectedModules = [ 'ntp' => new Module('ntp', '1.0.0') ];
+        $this->cacheStorage->setItem(CacheManager::KEY_MODULES . 'STABLE_PF1', $expectedModules);
+
+        $module = $this->proxy->getByEnvironmentAndName($this->environment, 'ntp');
+
+        $this->assertInstanceOf('KmbPmProxy\Model\Module', $module);
+        $this->assertEquals('ntp', $module->getName());
+        $this->assertEquals('1.0.0', $module->getVersion());
+    }
+
+    /** @test */
+    public function canGetByEnvironmentAndNameWhenCacheIsEmpty()
+    {
+        $this->moduleService->expects($this->any())
+            ->method('getAllByEnvironment')
+            ->will($this->returnValue([
+                'apache' => new Module('apache', '2.1.3'),
+                'mysql' => new Module('mysql', '0.2.8'),
+            ]));
+
+        $module = $this->proxy->getByEnvironmentAndName($this->environment, 'apache');
+
+        $this->assertEquals('apache', $module->getName());
+        $this->assertEquals('2.1.3', $module->getVersion());
+    }
 }

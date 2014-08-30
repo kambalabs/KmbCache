@@ -43,6 +43,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     {
         $this->nodeStatisticsService = $this->getMock('KmbPuppetDb\Service\NodeStatistics');
         $this->reportStatisticsService = $this->getMock('KmbPuppetDb\Service\ReportStatistics');
+        $this->pmProxyModuleService = $this->getMock('KmbPmProxy\Service\ModuleInterface');
         $querySuffixBuilder = $this->getMock('KmbCache\Service\QuerySuffixBuilderInterface');
         $querySuffixBuilder->expects($this->any())
             ->method('build')
@@ -52,7 +53,6 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
                 }
                 return empty($query) ? '' : '.' . $query[2];
             }));
-        $this->pmProxyModuleService = $this->getMock('KmbPmProxy\Service\ModuleInterface');
 
         $parent = new Environment();
         $parent->setName('STABLE');
@@ -158,7 +158,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
         $this->reportStatisticsService->expects($this->any())
             ->method('getAllAsArray')
             ->will($this->returnValue($expectedReportsStatistics));
-        $expectedModules = [ new Module('apache', '1.0.2') ];
+        $expectedModules = [ 'apache' => new Module('apache', '1.0.2') ];
         $this->pmProxyModuleService->expects($this->any())
             ->method('getAllByEnvironment')
             ->will($this->returnValue($expectedModules));
