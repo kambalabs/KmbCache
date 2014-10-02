@@ -24,6 +24,7 @@ use KmbBase\DateTimeFactoryInterface;
 use KmbDomain\Model\EnvironmentInterface;
 use KmbPmProxy\Service\ModuleInterface;
 use KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface;
+use KmbPuppetDb\Query\QueryBuilderInterface;
 use KmbPuppetDb\Service\NodeStatisticsInterface;
 use KmbPuppetDb\Service\ReportStatisticsInterface;
 use Zend\Cache\Storage\StorageInterface;
@@ -60,10 +61,10 @@ class CacheManager implements CacheManagerInterface
     /** @var QuerySuffixBuilderInterface */
     protected $querySuffixBuilder;
 
-    /** @var EnvironmentsQueryBuilderInterface */
+    /** @var QueryBuilderInterface */
     protected $nodesEnvironmentsQueryBuilder;
 
-    /** @var EnvironmentsQueryBuilderInterface */
+    /** @var QueryBuilderInterface */
     protected $reportsEnvironmentsQueryBuilder;
 
     /** @var \KmbPermission\Service\EnvironmentInterface */
@@ -95,7 +96,7 @@ class CacheManager implements CacheManagerInterface
         $query = $this->getReportsEnvironmentsQueryBuilder()->build($environments);
         $suffix = $this->getQuerySuffixBuilder()->build($query);
         $refreshReports = $this->refresh(static::KEY_REPORT_STATISTICS . $suffix, function () use ($query) {
-            return $this->getReportStatisticsService()->getAllAsArray($query);
+            return [];//$this->getReportStatisticsService()->getAllAsArray($query);
         });
 
         $refreshModules = false;
@@ -119,18 +120,21 @@ class CacheManager implements CacheManagerInterface
 
         $query = $this->getNodesEnvironmentsQueryBuilder()->build($environments);
         $key = static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query);
+        $this->logger->debug('Removing key ' . $key);
         $this->cacheStorage->removeItem($key);
         $this->cacheStorage->removeItem($this->statusKeyFor($key));
         $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
 
         $query = $this->getReportsEnvironmentsQueryBuilder()->build($environments);
         $key = static::KEY_REPORT_STATISTICS . $this->getQuerySuffixBuilder()->build($query);
+        $this->logger->debug('Removing key ' . $key);
         $this->cacheStorage->removeItem($key);
         $this->cacheStorage->removeItem($this->statusKeyFor($key));
         $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
 
         if ($environment != null) {
             $key = static::KEY_MODULES . $environment->getNormalizedName();
+            $this->logger->debug('Removing key ' . $key);
             $this->cacheStorage->removeItem($key);
             $this->cacheStorage->removeItem($this->statusKeyFor($key));
             $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));

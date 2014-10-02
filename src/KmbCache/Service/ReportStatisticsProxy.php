@@ -48,7 +48,7 @@ class ReportStatisticsProxy implements Service\ReportStatisticsInterface
             return $this->getCacheStorage()->getItem($key);
         }
 
-        return $this->getReportStatisticsService()->getAllAsArray($query);
+        return [];//$this->getReportStatisticsService()->getAllAsArray($query);
     }
 
     /**
