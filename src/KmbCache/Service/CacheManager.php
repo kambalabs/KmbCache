@@ -93,11 +93,12 @@ class CacheManager implements CacheManagerInterface
             return $this->getNodeStatisticsService()->getAllAsArray($query);
         });
 
-        $query = $this->getReportsEnvironmentsQueryBuilder()->build($environments);
-        $suffix = $this->getQuerySuffixBuilder()->build($query);
-        $refreshReports = $this->refresh(static::KEY_REPORT_STATISTICS . $suffix, function () use ($query) {
-            return [];//$this->getReportStatisticsService()->getAllAsArray($query);
-        });
+        $refreshReports = true;
+//        $query = $this->getReportsEnvironmentsQueryBuilder()->build($environments);
+//        $suffix = $this->getQuerySuffixBuilder()->build($query);
+//        $refreshReports = $this->refresh(static::KEY_REPORT_STATISTICS . $suffix, function () use ($query) {
+//            return $this->getReportStatisticsService()->getAllAsArray($query);
+//        });
 
         $refreshModules = false;
         if ($environment != null) {
@@ -125,12 +126,12 @@ class CacheManager implements CacheManagerInterface
         $this->cacheStorage->removeItem($this->statusKeyFor($key));
         $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
 
-        $query = $this->getReportsEnvironmentsQueryBuilder()->build($environments);
-        $key = static::KEY_REPORT_STATISTICS . $this->getQuerySuffixBuilder()->build($query);
-        $this->logger->debug('Removing key ' . $key);
-        $this->cacheStorage->removeItem($key);
-        $this->cacheStorage->removeItem($this->statusKeyFor($key));
-        $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
+//        $query = $this->getReportsEnvironmentsQueryBuilder()->build($environments);
+//        $key = static::KEY_REPORT_STATISTICS . $this->getQuerySuffixBuilder()->build($query);
+//        $this->logger->debug('Removing key ' . $key);
+//        $this->cacheStorage->removeItem($key);
+//        $this->cacheStorage->removeItem($this->statusKeyFor($key));
+//        $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
 
         if ($environment != null) {
             $key = static::KEY_MODULES . $environment->getNormalizedName();
@@ -278,7 +279,7 @@ class CacheManager implements CacheManagerInterface
     /**
      * Set NodesEnvironmentsQueryBuilder.
      *
-     * @param \KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface $nodesEnvironmentsQueryBuilder
+     * @param \KmbPuppetDb\Query\QueryBuilderInterface $nodesEnvironmentsQueryBuilder
      * @return CacheManager
      */
     public function setNodesEnvironmentsQueryBuilder($nodesEnvironmentsQueryBuilder)
@@ -290,7 +291,7 @@ class CacheManager implements CacheManagerInterface
     /**
      * Get NodesEnvironmentsQueryBuilder.
      *
-     * @return \KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface
+     * @return \KmbPuppetDb\Query\QueryBuilderInterface
      */
     public function getNodesEnvironmentsQueryBuilder()
     {
@@ -300,7 +301,7 @@ class CacheManager implements CacheManagerInterface
     /**
      * Set ReportsEnvironmentsQueryBuilder.
      *
-     * @param \KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface $reportsEnvironmentsQueryBuilder
+     * @param \KmbPuppetDb\Query\QueryBuilderInterface $reportsEnvironmentsQueryBuilder
      * @return CacheManager
      */
     public function setReportsEnvironmentsQueryBuilder($reportsEnvironmentsQueryBuilder)
@@ -312,7 +313,7 @@ class CacheManager implements CacheManagerInterface
     /**
      * Get ReportsEnvironmentsQueryBuilder.
      *
-     * @return \KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface
+     * @return \KmbPuppetDb\Query\QueryBuilderInterface
      */
     public function getReportsEnvironmentsQueryBuilder()
     {
