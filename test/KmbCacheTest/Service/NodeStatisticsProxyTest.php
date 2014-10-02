@@ -13,7 +13,7 @@ class NodeStatisticsProxyTest extends \PHPUnit_Framework_TestCase
     {
         $cacheManager = $this->getMock('KmbCache\Service\CacheManagerInterface');
         $cacheManager->expects($this->any())
-            ->method('getNodesStatistics')
+            ->method('getNodeStatistics')
             ->will($this->returnCallback(function ($query = null) {
                 if ($query === null) {
                     return [

@@ -85,14 +85,14 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
         $lastMonth->sub(\DateInterval::createFromDateString('1 month'));
         $this->cacheStorage->setItem(CacheManager::refreshedAtKeyFor(CacheManager::KEY_NODE_STATISTICS), $lastMonth);
         $this->cacheStorage->setItem(CacheManager::KEY_NODE_STATISTICS, ['nodesCount' => 1]);
-        $expectedNodesStatistics = ['nodesCount' => 2];
+        $expectedNodeStatistics = ['nodesCount' => 2];
         $this->nodeStatisticsService->expects($this->any())
             ->method('getAllAsArray')
-            ->will($this->returnValue($expectedNodesStatistics));
+            ->will($this->returnValue($expectedNodeStatistics));
 
         $this->cacheManager->refreshExpiredCache();
 
-        $this->assertEquals($expectedNodesStatistics, $this->cacheStorage->getItem(CacheManager::KEY_NODE_STATISTICS));
+        $this->assertEquals($expectedNodeStatistics, $this->cacheStorage->getItem(CacheManager::KEY_NODE_STATISTICS));
         $this->assertEquals(CacheManager::COMPLETED, $this->cacheStorage->getItem(CacheManager::statusKeyFor(CacheManager::KEY_NODE_STATISTICS)));
         $this->assertEquals($this->now, $this->cacheStorage->getItem(CacheManager::refreshedAtKeyFor(CacheManager::KEY_NODE_STATISTICS)));
     }
@@ -127,10 +127,10 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
         $modulesKey = CacheManager::KEY_MODULES . 'STABLE_PF1';
         $this->cacheStorage->setItem($nodesKey, ['nodesCount' => 1]);
         $this->cacheStorage->setItem($modulesKey, ['ntp' => new Module('ntp', '1.1.2')]);
-        $expectedNodesStatistics = ['nodesCount' => 2];
+        $expectedNodeStatistics = ['nodesCount' => 2];
         $this->nodeStatisticsService->expects($this->any())
             ->method('getAllAsArray')
-            ->will($this->returnValue($expectedNodesStatistics));
+            ->will($this->returnValue($expectedNodeStatistics));
         $expectedModules = ['apache' => new Module('apache', '1.0.2')];
         $this->pmProxyModuleService->expects($this->any())
             ->method('getAllByEnvironment')
@@ -139,7 +139,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
         $refresh = $this->cacheManager->refreshExpiredCache($this->environment);
 
         $this->assertTrue($refresh);
-        $this->assertEquals($expectedNodesStatistics, $this->cacheStorage->getItem($nodesKey));
+        $this->assertEquals($expectedNodeStatistics, $this->cacheStorage->getItem($nodesKey));
         $this->assertEquals(CacheManager::COMPLETED, $this->cacheStorage->getItem(CacheManager::statusKeyFor($nodesKey)));
         $this->assertEquals($this->now, $this->cacheStorage->getItem(CacheManager::refreshedAtKeyFor($nodesKey)));
         $this->assertEquals($expectedModules, $this->cacheStorage->getItem($modulesKey));
@@ -170,30 +170,30 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     }
 
     /** @test */
-    public function canGetNodesStatistics()
+    public function canGetNodeStatistics()
     {
-        $expectedNodesStatistics = ['nodesCount' => 2];
+        $expectedNodeStatistics = ['nodesCount' => 2];
         $key = CacheManager::KEY_NODE_STATISTICS . '.STABLE_PF1';
-        $this->cacheStorage->setItem($key, $expectedNodesStatistics);
+        $this->cacheStorage->setItem($key, $expectedNodeStatistics);
         $this->cacheStorage->setItem(CacheManager::statusKeyFor($key), CacheManager::COMPLETED);
         $this->cacheStorage->setItem(CacheManager::refreshedAtKeyFor($key), $this->now);
 
-        $nodesStatistics = $this->cacheManager->getNodesStatistics(['=', 'environment', 'STABLE_PF1']);
+        $nodeStatistics = $this->cacheManager->getNodeStatistics(['=', 'environment', 'STABLE_PF1']);
 
-        $this->assertEquals($expectedNodesStatistics, $nodesStatistics);
+        $this->assertEquals($expectedNodeStatistics, $nodeStatistics);
     }
 
     /** @test */
-    public function canGetNodesStatisticsFromRealService()
+    public function canGetNodeStatisticsFromRealService()
     {
-        $expectedNodesStatistics = ['nodesCount' => 2];
+        $expectedNodeStatistics = ['nodesCount' => 2];
         $this->nodeStatisticsService->expects($this->any())
             ->method('getAllAsArray')
-            ->will($this->returnValue($expectedNodesStatistics));
+            ->will($this->returnValue($expectedNodeStatistics));
 
-        $nodesStatistics = $this->cacheManager->getNodesStatistics(['=', 'environment', 'STABLE_PF1']);
+        $nodeStatistics = $this->cacheManager->getNodeStatistics(['=', 'environment', 'STABLE_PF1']);
 
-        $this->assertEquals($expectedNodesStatistics, $nodesStatistics);
+        $this->assertEquals($expectedNodeStatistics, $nodeStatistics);
     }
 
     /** @test */

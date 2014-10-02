@@ -30,13 +30,13 @@ interface CacheManagerInterface
      * @param array|Query $query
      * @return bool
      */
-    public function refreshNodesStatisticsIfExpired($query);
+    public function refreshNodeStatisticsIfExpired($query);
 
     /**
      * @param array|Query $query
      * @return array
      */
-    public function getNodesStatistics($query = null);
+    public function getNodeStatistics($query = null);
 
     /**
      * @param EnvironmentInterface $environment

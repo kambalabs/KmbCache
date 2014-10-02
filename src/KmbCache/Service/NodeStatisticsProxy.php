@@ -125,7 +125,7 @@ class NodeStatisticsProxy implements Service\NodeStatisticsInterface
      */
     public function getAllAsArray($query = null)
     {
-        return $this->cacheManager->getNodesStatistics($query);
+        return $this->cacheManager->getNodeStatistics($query);
     }
 
     /**

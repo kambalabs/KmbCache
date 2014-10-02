@@ -73,7 +73,7 @@ class CacheManager implements CacheManagerInterface
      * @param array|Query $query
      * @return bool
      */
-    public function refreshNodesStatisticsIfExpired($query)
+    public function refreshNodeStatisticsIfExpired($query)
     {
         $suffix = $this->getQuerySuffixBuilder()->build($query);
         $refreshNodes = $this->refresh(static::KEY_NODE_STATISTICS . $suffix, function () use ($query) {
@@ -86,9 +86,9 @@ class CacheManager implements CacheManagerInterface
      * @param array|Query $query
      * @return array
      */
-    public function getNodesStatistics($query = null)
+    public function getNodeStatistics($query = null)
     {
-        $this->refreshNodesStatisticsIfExpired($query);
+        $this->refreshNodeStatisticsIfExpired($query);
         return $this->cacheStorage->getItem(static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query));
     }
 
@@ -128,7 +128,7 @@ class CacheManager implements CacheManagerInterface
         $environments = $this->permissionEnvironmentService->getAllReadable($environment);
         $query = $this->getNodesEnvironmentsQueryBuilder()->build($environments);
 
-        $nodesRefreshed = $this->refreshNodesStatisticsIfExpired($query);
+        $nodesRefreshed = $this->refreshNodeStatisticsIfExpired($query);
         $modulesRefreshed = $this->refreshModulesIfExpired($environment);
 
         return $nodesRefreshed || $modulesRefreshed;
