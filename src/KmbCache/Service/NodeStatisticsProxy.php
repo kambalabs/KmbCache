@@ -23,18 +23,11 @@ namespace KmbCache\Service;
 use KmbPuppetDb\Model;
 use KmbPuppetDb\Query\Query;
 use KmbPuppetDb\Service;
-use Zend\Cache\Storage\StorageInterface;
 
 class NodeStatisticsProxy implements Service\NodeStatisticsInterface
 {
-    /** @var StorageInterface */
-    protected $cacheStorage;
-
-    /** @var Service\NodeStatisticsInterface */
-    protected $nodeStatisticsService;
-
-    /** @var QuerySuffixBuilderInterface */
-    protected $querySuffixBuilder;
+    /** @var CacheManagerInterface */
+    protected $cacheManager;
 
     /**
      * Get unchanged nodes count.
@@ -132,74 +125,29 @@ class NodeStatisticsProxy implements Service\NodeStatisticsInterface
      */
     public function getAllAsArray($query = null)
     {
-        $key = CacheManager::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query);
-        if ($this->getCacheStorage()->hasItem($key)) {
-            return $this->getCacheStorage()->getItem($key);
-        }
-
-        return $this->getNodeStatisticsService()->getAllAsArray($query);
+        return $this->cacheManager->getNodesStatistics($query);
     }
 
     /**
-     * @return Service\NodeStatisticsInterface
-     */
-    public function getNodeStatisticsService()
-    {
-        return $this->nodeStatisticsService;
-    }
-
-    /**
-     * @param $nodeStatisticsService
+     * Set CacheManager.
+     *
+     * @param CacheManagerInterface $cacheManager
      * @return NodeStatisticsProxy
      */
-    public function setNodeStatisticsService($nodeStatisticsService)
+    public function setCacheManager($cacheManager)
     {
-        $this->nodeStatisticsService = $nodeStatisticsService;
+        $this->cacheManager = $cacheManager;
         return $this;
     }
 
     /**
-     * Set CacheStorage.
+     * Get CacheManager.
      *
-     * @param \Zend\Cache\Storage\StorageInterface $cacheStorage
-     * @return NodeStatisticsProxy
+     * @return CacheManagerInterface
      */
-    public function setCacheStorage($cacheStorage)
+    public function getCacheManager()
     {
-        $this->cacheStorage = $cacheStorage;
-        return $this;
-    }
-
-    /**
-     * Get CacheStorage.
-     *
-     * @return \Zend\Cache\Storage\StorageInterface
-     */
-    public function getCacheStorage()
-    {
-        return $this->cacheStorage;
-    }
-
-    /**
-     * Set QuerySuffixBuilder.
-     *
-     * @param \KmbCache\Service\QuerySuffixBuilderInterface $querySuffixBuilder
-     * @return NodeStatisticsProxy
-     */
-    public function setQuerySuffixBuilder($querySuffixBuilder)
-    {
-        $this->querySuffixBuilder = $querySuffixBuilder;
-        return $this;
-    }
-
-    /**
-     * Get QuerySuffixBuilder.
-     *
-     * @return \KmbCache\Service\QuerySuffixBuilderInterface
-     */
-    public function getQuerySuffixBuilder()
-    {
-        return $this->querySuffixBuilder;
+        return $this->cacheManager;
     }
 
     /**

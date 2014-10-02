@@ -21,9 +21,35 @@
 namespace KmbCache\Service;
 
 use KmbDomain\Model\EnvironmentInterface;
+use KmbPmProxy\Model\Module;
+use KmbPuppetDb\Query\Query;
 
 interface CacheManagerInterface
 {
+    /**
+     * @param array|Query $query
+     * @return bool
+     */
+    public function refreshNodesStatisticsIfExpired($query);
+
+    /**
+     * @param array|Query $query
+     * @return array
+     */
+    public function getNodesStatistics($query = null);
+
+    /**
+     * @param EnvironmentInterface $environment
+     * @return bool
+     */
+    public function refreshModulesIfExpired($environment);
+
+    /**
+     * @param EnvironmentInterface $environment
+     * @return Module[]
+     */
+    public function getModules($environment = null);
+
     /**
      * Refresh cache if necessary.
      *

@@ -49,12 +49,10 @@ return [
         'factories' => [
             'KmbCache\Service\CacheManager' => 'KmbCache\Service\CacheManagerFactory',
             'KmbCache\Service\NodeStatisticsProxy' => 'KmbCache\Service\NodeStatisticsProxyFactory',
-            'KmbCache\Service\ReportStatisticsProxy' => 'KmbCache\Service\ReportStatisticsProxyFactory',
             'KmbCache\Service\ModuleProxy' => 'KmbCache\Service\ModuleProxyFactory',
         ],
         'aliases' => [
             'nodeStatisticsService' => 'KmbCache\Service\NodeStatisticsProxy',
-            'reportStatisticsService' => 'KmbCache\Service\ReportStatisticsProxy',
             'pmProxyModuleService' => 'KmbCache\Service\ModuleProxy',
         ],
     ],

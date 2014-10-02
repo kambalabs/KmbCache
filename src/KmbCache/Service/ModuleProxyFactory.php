@@ -20,8 +20,6 @@
  */
 namespace KmbCache\Service;
 
-use KmbPmProxy\Service\Module;
-use Zend\Cache\Storage\StorageInterface;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
@@ -37,13 +35,9 @@ class ModuleProxyFactory implements FactoryInterface
     {
         $proxy = new ModuleProxy();
 
-        /** @var Module $realService */
-        $realService = $serviceLocator->get('KmbPmProxy\Service\Module');
-        $proxy->setPmProxyModuleService($realService);
-
-        /** @var StorageInterface $cacheStorage */
-        $cacheStorage = $serviceLocator->get('CacheService');
-        $proxy->setCacheStorage($cacheStorage);
+        /** @var CacheManagerInterface $cacheManager */
+        $cacheManager = $serviceLocator->get('KmbCache\Service\CacheManager');
+        $proxy->setCacheManager($cacheManager);
 
         return $proxy;
     }

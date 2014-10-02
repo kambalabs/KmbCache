@@ -22,7 +22,7 @@ namespace KmbCache\Service;
 
 use KmbPermission\Service\EnvironmentInterface;
 use KmbPmProxy\Service\ModuleInterface;
-use KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface;
+use KmbPuppetDb\Query\QueryBuilderInterface;
 use KmbPuppetDb\Service;
 use Zend\Log\Logger;
 use Zend\ServiceManager\FactoryInterface;
@@ -45,21 +45,13 @@ class CacheManagerFactory implements FactoryInterface
         $nodeStatisticsService = $serviceLocator->get('KmbPuppetDb\Service\NodeStatistics');
         $cacheManager->setNodeStatisticsService($nodeStatisticsService);
 
-        // Cache manager needs real report statistics service
-        $reportStatisticsService = $serviceLocator->get('KmbPuppetDb\Service\ReportStatistics');
-        $cacheManager->setReportStatisticsService($reportStatisticsService);
-
         /** @var QuerySuffixBuilderInterface $querySuffixBuilder */
         $querySuffixBuilder = $serviceLocator->get('KmbCache\Service\QuerySuffixBuilder');
         $cacheManager->setQuerySuffixBuilder($querySuffixBuilder);
 
-        /** @var EnvironmentsQueryBuilderInterface $nodesEnvironmentQueryBuilder */
+        /** @var QueryBuilderInterface $nodesEnvironmentQueryBuilder */
         $nodesEnvironmentQueryBuilder = $serviceLocator->get('KmbPuppetDb\Query\NodesEnvironmentsQueryBuilder');
         $cacheManager->setNodesEnvironmentsQueryBuilder($nodesEnvironmentQueryBuilder);
-
-        /** @var EnvironmentsQueryBuilderInterface $reportsEnvironmentQueryBuilder */
-        $reportsEnvironmentQueryBuilder = $serviceLocator->get('KmbPuppetDb\Query\ReportsEnvironmentsQueryBuilder');
-        $cacheManager->setReportsEnvironmentsQueryBuilder($reportsEnvironmentQueryBuilder);
 
         /** @var EnvironmentInterface $permissionEnvironmentService */
         $permissionEnvironmentService = $serviceLocator->get('KmbPermission\Service\Environment');

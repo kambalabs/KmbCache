@@ -22,11 +22,11 @@ namespace KmbCache\Service;
 
 use KmbBase\DateTimeFactoryInterface;
 use KmbDomain\Model\EnvironmentInterface;
+use KmbPmProxy\Model\Module;
 use KmbPmProxy\Service\ModuleInterface;
-use KmbPuppetDb\Query\EnvironmentsQueryBuilderInterface;
+use KmbPuppetDb\Query\Query;
 use KmbPuppetDb\Query\QueryBuilderInterface;
 use KmbPuppetDb\Service\NodeStatisticsInterface;
-use KmbPuppetDb\Service\ReportStatisticsInterface;
 use Zend\Cache\Storage\StorageInterface;
 use Zend\Log\Logger;
 
@@ -40,7 +40,6 @@ class CacheManager implements CacheManagerInterface
     const STATUS_SUFFIX = '.status';
     const REFRESHED_AT_SUFFIX = '.refreshedAt';
     const KEY_NODE_STATISTICS = 'nodeStatistics';
-    const KEY_REPORT_STATISTICS = 'reportStatistics';
     const KEY_MODULES = 'modules.';
     const PENDING = 'pending';
     const COMPLETED = 'completed';
@@ -48,9 +47,6 @@ class CacheManager implements CacheManagerInterface
 
     /** @var NodeStatisticsInterface */
     protected $nodeStatisticsService;
-
-    /** @var ReportStatisticsInterface */
-    protected $reportStatisticsService;
 
     /** @var StorageInterface */
     protected $cacheStorage;
@@ -64,9 +60,6 @@ class CacheManager implements CacheManagerInterface
     /** @var QueryBuilderInterface */
     protected $nodesEnvironmentsQueryBuilder;
 
-    /** @var QueryBuilderInterface */
-    protected $reportsEnvironmentsQueryBuilder;
-
     /** @var \KmbPermission\Service\EnvironmentInterface */
     protected $permissionEnvironmentService;
 
@@ -75,6 +68,53 @@ class CacheManager implements CacheManagerInterface
 
     /** @var Logger */
     protected $logger;
+
+    /**
+     * @param array|Query $query
+     * @return bool
+     */
+    public function refreshNodesStatisticsIfExpired($query)
+    {
+        $suffix = $this->getQuerySuffixBuilder()->build($query);
+        $refreshNodes = $this->refresh(static::KEY_NODE_STATISTICS . $suffix, function () use ($query) {
+            return $this->getNodeStatisticsService()->getAllAsArray($query);
+        });
+        return $refreshNodes;
+    }
+
+    /**
+     * @param array|Query $query
+     * @return array
+     */
+    public function getNodesStatistics($query = null)
+    {
+        $this->refreshNodesStatisticsIfExpired($query);
+        return $this->cacheStorage->getItem(static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query));
+    }
+
+    /**
+     * @param EnvironmentInterface $environment
+     * @return bool
+     */
+    public function refreshModulesIfExpired($environment)
+    {
+        if ($environment != null) {
+            return $this->refresh(static::KEY_MODULES . $environment->getNormalizedName(), function () use ($environment) {
+                return $this->getPmProxyModuleService()->getAllByEnvironment($environment);
+            });
+        }
+        return false;
+    }
+
+    /**
+     * @param EnvironmentInterface $environment
+     * @return Module[]
+     */
+    public function getModules($environment = null)
+    {
+        $this->refreshModulesIfExpired($environment);
+        return $this->cacheStorage->getItem(static::KEY_MODULES . $environment->getNormalizedName());
+    }
 
     /**
      * Refresh cache if necessary.
@@ -86,28 +126,12 @@ class CacheManager implements CacheManagerInterface
     public function refreshExpiredCache($environment = null)
     {
         $environments = $this->permissionEnvironmentService->getAllReadable($environment);
-
         $query = $this->getNodesEnvironmentsQueryBuilder()->build($environments);
-        $suffix = $this->getQuerySuffixBuilder()->build($query);
-        $refreshNodes = $this->refresh(static::KEY_NODE_STATISTICS . $suffix, function () use ($query) {
-            return $this->getNodeStatisticsService()->getAllAsArray($query);
-        });
 
-        $refreshReports = true;
-//        $query = $this->getReportsEnvironmentsQueryBuilder()->build($environments);
-//        $suffix = $this->getQuerySuffixBuilder()->build($query);
-//        $refreshReports = $this->refresh(static::KEY_REPORT_STATISTICS . $suffix, function () use ($query) {
-//            return $this->getReportStatisticsService()->getAllAsArray($query);
-//        });
+        $nodesRefreshed = $this->refreshNodesStatisticsIfExpired($query);
+        $modulesRefreshed = $this->refreshModulesIfExpired($environment);
 
-        $refreshModules = false;
-        if ($environment != null) {
-            $refreshModules = $this->refresh(static::KEY_MODULES . $environment->getNormalizedName(), function () use ($environment) {
-                return $this->getPmProxyModuleService()->getAllByEnvironment($environment);
-            });
-        }
-
-        return $refreshNodes || $refreshReports || $refreshModules;
+        return $nodesRefreshed || $modulesRefreshed;
     }
 
     /**
@@ -118,27 +142,12 @@ class CacheManager implements CacheManagerInterface
     public function clearCache($environment = null)
     {
         $environments = $this->permissionEnvironmentService->getAllReadable($environment);
-
         $query = $this->getNodesEnvironmentsQueryBuilder()->build($environments);
-        $key = static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query);
-        $this->logger->debug('Removing key ' . $key);
-        $this->cacheStorage->removeItem($key);
-        $this->cacheStorage->removeItem($this->statusKeyFor($key));
-        $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
 
-//        $query = $this->getReportsEnvironmentsQueryBuilder()->build($environments);
-//        $key = static::KEY_REPORT_STATISTICS . $this->getQuerySuffixBuilder()->build($query);
-//        $this->logger->debug('Removing key ' . $key);
-//        $this->cacheStorage->removeItem($key);
-//        $this->cacheStorage->removeItem($this->statusKeyFor($key));
-//        $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
+        $this->clearCacheFor(static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query));
 
         if ($environment != null) {
-            $key = static::KEY_MODULES . $environment->getNormalizedName();
-            $this->logger->debug('Removing key ' . $key);
-            $this->cacheStorage->removeItem($key);
-            $this->cacheStorage->removeItem($this->statusKeyFor($key));
-            $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
+            $this->clearCacheFor(static::KEY_MODULES . $environment->getNormalizedName());
         }
     }
 
@@ -175,24 +184,6 @@ class CacheManager implements CacheManagerInterface
     public function setNodeStatisticsService($nodeStatisticsService)
     {
         $this->nodeStatisticsService = $nodeStatisticsService;
-        return $this;
-    }
-
-    /**
-     * @return ReportStatisticsInterface
-     */
-    public function getReportStatisticsService()
-    {
-        return $this->reportStatisticsService;
-    }
-
-    /**
-     * @param $reportStatisticsService
-     * @return CacheManager
-     */
-    public function setReportStatisticsService($reportStatisticsService)
-    {
-        $this->reportStatisticsService = $reportStatisticsService;
         return $this;
     }
 
@@ -299,28 +290,6 @@ class CacheManager implements CacheManagerInterface
     }
 
     /**
-     * Set ReportsEnvironmentsQueryBuilder.
-     *
-     * @param \KmbPuppetDb\Query\QueryBuilderInterface $reportsEnvironmentsQueryBuilder
-     * @return CacheManager
-     */
-    public function setReportsEnvironmentsQueryBuilder($reportsEnvironmentsQueryBuilder)
-    {
-        $this->reportsEnvironmentsQueryBuilder = $reportsEnvironmentsQueryBuilder;
-        return $this;
-    }
-
-    /**
-     * Get ReportsEnvironmentsQueryBuilder.
-     *
-     * @return \KmbPuppetDb\Query\QueryBuilderInterface
-     */
-    public function getReportsEnvironmentsQueryBuilder()
-    {
-        return $this->reportsEnvironmentsQueryBuilder;
-    }
-
-    /**
      * Set PermissionEnvironmentService.
      *
      * @param \KmbPermission\Service\EnvironmentInterface $permissionEnvironmentService
@@ -390,5 +359,16 @@ class CacheManager implements CacheManagerInterface
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param $key
+     */
+    protected function clearCacheFor($key)
+    {
+        $this->logger->debug('Removing cache for ' . $key);
+        $this->cacheStorage->removeItem($key);
+        $this->cacheStorage->removeItem($this->statusKeyFor($key));
+        $this->cacheStorage->removeItem($this->refreshedAtKeyFor($key));
     }
 }

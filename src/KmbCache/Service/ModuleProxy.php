@@ -21,17 +21,13 @@
 namespace KmbCache\Service;
 
 use KmbDomain;
-use KmbPmProxy;
 use KmbPmProxy\Service\ModuleInterface;
-use Zend\Cache\Storage\StorageInterface;
+use KmbPmProxy;
 
 class ModuleProxy implements ModuleInterface
 {
-    /** @var StorageInterface */
-    protected $cacheStorage;
-
-    /** @var ModuleInterface */
-    protected $pmProxyModuleService;
+    /** @var  CacheManagerInterface */
+    protected $cacheManager;
 
     /**
      * @param KmbDomain\Model\EnvironmentInterface $environment
@@ -39,11 +35,7 @@ class ModuleProxy implements ModuleInterface
      */
     public function getAllByEnvironment(KmbDomain\Model\EnvironmentInterface $environment)
     {
-        $key = CacheManager::KEY_MODULES . $environment->getNormalizedName();
-        if ($this->cacheStorage->hasItem($key)) {
-            return $this->cacheStorage->getItem($key);
-        }
-        return $this->pmProxyModuleService->getAllByEnvironment($environment);
+        return $this->cacheManager->getModules($environment);
     }
 
     /**
@@ -58,46 +50,24 @@ class ModuleProxy implements ModuleInterface
     }
 
     /**
-     * Set CacheStorage.
+     * Set CacheManager.
      *
-     * @param \Zend\Cache\Storage\StorageInterface $cacheStorage
+     * @param \KmbCache\Service\CacheManagerInterface $cacheManager
      * @return ModuleProxy
      */
-    public function setCacheStorage($cacheStorage)
+    public function setCacheManager($cacheManager)
     {
-        $this->cacheStorage = $cacheStorage;
+        $this->cacheManager = $cacheManager;
         return $this;
     }
 
     /**
-     * Get CacheStorage.
+     * Get CacheManager.
      *
-     * @return \Zend\Cache\Storage\StorageInterface
+     * @return \KmbCache\Service\CacheManagerInterface
      */
-    public function getCacheStorage()
+    public function getCacheManager()
     {
-        return $this->cacheStorage;
-    }
-
-    /**
-     * Set PmProxyModuleService.
-     *
-     * @param \KmbPmProxy\Service\ModuleInterface $pmProxyModuleService
-     * @return ModuleProxy
-     */
-    public function setPmProxyModuleService($pmProxyModuleService)
-    {
-        $this->pmProxyModuleService = $pmProxyModuleService;
-        return $this;
-    }
-
-    /**
-     * Get PmProxyModuleService.
-     *
-     * @return \KmbPmProxy\Service\ModuleInterface
-     */
-    public function getPmProxyModuleService()
-    {
-        return $this->pmProxyModuleService;
+        return $this->cacheManager;
     }
 }
