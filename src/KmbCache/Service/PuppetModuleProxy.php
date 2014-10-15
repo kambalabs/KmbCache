@@ -21,39 +21,39 @@
 namespace KmbCache\Service;
 
 use KmbDomain;
-use KmbPmProxy\Service\ModuleInterface;
+use KmbPmProxy\Service\PuppetModuleInterface;
 use KmbPmProxy;
 
-class ModuleProxy implements ModuleInterface
+class PuppetModuleProxy implements PuppetModuleInterface
 {
     /** @var  CacheManagerInterface */
     protected $cacheManager;
 
     /**
      * @param KmbDomain\Model\EnvironmentInterface $environment
-     * @return KmbPmProxy\Model\Module[]
+     * @return KmbPmProxy\Model\PuppetModule[]
      */
     public function getAllByEnvironment(KmbDomain\Model\EnvironmentInterface $environment)
     {
-        return $this->cacheManager->getModules($environment);
+        return $this->cacheManager->getPuppetModules($environment);
     }
 
     /**
      * @param KmbDomain\Model\EnvironmentInterface $environment
      * @param string                               $name
-     * @return KmbPmProxy\Model\Module
+     * @return KmbPmProxy\Model\PuppetModule
      */
     public function getByEnvironmentAndName(KmbDomain\Model\EnvironmentInterface $environment, $name)
     {
-        $modules = $this->getAllByEnvironment($environment);
-        return isset($modules[$name]) ? $modules[$name] : null;
+        $puppetModules = $this->getAllByEnvironment($environment);
+        return isset($puppetModules[$name]) ? $puppetModules[$name] : null;
     }
 
     /**
      * Set CacheManager.
      *
      * @param \KmbCache\Service\CacheManagerInterface $cacheManager
-     * @return ModuleProxy
+     * @return PuppetModuleProxy
      */
     public function setCacheManager($cacheManager)
     {

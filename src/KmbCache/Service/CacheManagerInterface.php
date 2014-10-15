@@ -42,13 +42,13 @@ interface CacheManagerInterface
      * @param EnvironmentInterface $environment
      * @return bool
      */
-    public function refreshModulesIfExpired($environment);
+    public function refreshPuppetModulesIfExpired($environment);
 
     /**
      * @param EnvironmentInterface $environment
      * @return Module[]
      */
-    public function getModules($environment = null);
+    public function getPuppetModules($environment = null);
 
     /**
      * Refresh cache if necessary.

@@ -22,8 +22,8 @@ namespace KmbCache\Service;
 
 use KmbBase\DateTimeFactoryInterface;
 use KmbDomain\Model\EnvironmentInterface;
-use KmbPmProxy\Model\Module;
-use KmbPmProxy\Service\ModuleInterface;
+use KmbPmProxy\Model\PuppetModule;
+use KmbPmProxy\Service\PuppetModuleInterface;
 use KmbPuppetDb\Query\Query;
 use KmbPuppetDb\Query\QueryBuilderInterface;
 use KmbPuppetDb\Service\NodeStatisticsInterface;
@@ -40,7 +40,7 @@ class CacheManager implements CacheManagerInterface
     const STATUS_SUFFIX = '.status';
     const REFRESHED_AT_SUFFIX = '.refreshedAt';
     const KEY_NODE_STATISTICS = 'nodeStatistics';
-    const KEY_MODULES = 'modules.';
+    const KEY_PUPPET_MODULES = 'modules.';
     const PENDING = 'pending';
     const COMPLETED = 'completed';
     const EXPIRATION_TIME = '5 minutes';
@@ -63,8 +63,8 @@ class CacheManager implements CacheManagerInterface
     /** @var \KmbPermission\Service\EnvironmentInterface */
     protected $permissionEnvironmentService;
 
-    /** @var ModuleInterface */
-    protected $pmProxyModuleService;
+    /** @var PuppetModuleInterface */
+    protected $pmProxyPuppetModuleService;
 
     /** @var Logger */
     protected $logger;
@@ -96,11 +96,11 @@ class CacheManager implements CacheManagerInterface
      * @param EnvironmentInterface $environment
      * @return bool
      */
-    public function refreshModulesIfExpired($environment)
+    public function refreshPuppetModulesIfExpired($environment)
     {
         if ($environment != null) {
-            return $this->refresh(static::KEY_MODULES . $environment->getNormalizedName(), function () use ($environment) {
-                return $this->getPmProxyModuleService()->getAllByEnvironment($environment);
+            return $this->refresh(static::KEY_PUPPET_MODULES . $environment->getNormalizedName(), function () use ($environment) {
+                return $this->getPmProxyPuppetModuleService()->getAllByEnvironment($environment);
             });
         }
         return false;
@@ -108,12 +108,12 @@ class CacheManager implements CacheManagerInterface
 
     /**
      * @param EnvironmentInterface $environment
-     * @return Module[]
+     * @return PuppetModule[]
      */
-    public function getModules($environment = null)
+    public function getPuppetModules($environment = null)
     {
-        $this->refreshModulesIfExpired($environment);
-        return $this->cacheStorage->getItem(static::KEY_MODULES . $environment->getNormalizedName());
+        $this->refreshPuppetModulesIfExpired($environment);
+        return $this->cacheStorage->getItem(static::KEY_PUPPET_MODULES . $environment->getNormalizedName());
     }
 
     /**
@@ -129,7 +129,7 @@ class CacheManager implements CacheManagerInterface
         $query = $this->getNodesEnvironmentsQueryBuilder()->build($environments);
 
         $nodesRefreshed = $this->refreshNodeStatisticsIfExpired($query);
-        $modulesRefreshed = $this->refreshModulesIfExpired($environment);
+        $modulesRefreshed = $this->refreshPuppetModulesIfExpired($environment);
 
         return $nodesRefreshed || $modulesRefreshed;
     }
@@ -147,7 +147,7 @@ class CacheManager implements CacheManagerInterface
         $this->clearCacheFor(static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query));
 
         if ($environment != null) {
-            $this->clearCacheFor(static::KEY_MODULES . $environment->getNormalizedName());
+            $this->clearCacheFor(static::KEY_PUPPET_MODULES . $environment->getNormalizedName());
         }
     }
 
@@ -190,23 +190,23 @@ class CacheManager implements CacheManagerInterface
     /**
      * Set PmProxyModuleService.
      *
-     * @param \KmbPmProxy\Service\ModuleInterface $pmProxyModuleService
+     * @param \KmbPmProxy\Service\PuppetModuleInterface $pmProxyPuppetModuleService
      * @return CacheManager
      */
-    public function setPmProxyModuleService($pmProxyModuleService)
+    public function setPmProxyPuppetModuleService($pmProxyPuppetModuleService)
     {
-        $this->pmProxyModuleService = $pmProxyModuleService;
+        $this->pmProxyPuppetModuleService = $pmProxyPuppetModuleService;
         return $this;
     }
 
     /**
      * Get PmProxyModuleService.
      *
-     * @return \KmbPmProxy\Service\ModuleInterface
+     * @return \KmbPmProxy\Service\PuppetModuleInterface
      */
-    public function getPmProxyModuleService()
+    public function getPmProxyPuppetModuleService()
     {
-        return $this->pmProxyModuleService;
+        return $this->pmProxyPuppetModuleService;
     }
 
     /**

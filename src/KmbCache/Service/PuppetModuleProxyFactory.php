@@ -23,7 +23,7 @@ namespace KmbCache\Service;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
-class ModuleProxyFactory implements FactoryInterface
+class PuppetModuleProxyFactory implements FactoryInterface
 {
     /**
      * Create service
@@ -33,7 +33,7 @@ class ModuleProxyFactory implements FactoryInterface
      */
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
-        $proxy = new ModuleProxy();
+        $proxy = new PuppetModuleProxy();
 
         /** @var CacheManagerInterface $cacheManager */
         $cacheManager = $serviceLocator->get('KmbCache\Service\CacheManager');

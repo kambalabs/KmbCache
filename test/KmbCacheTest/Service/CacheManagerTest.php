@@ -6,7 +6,7 @@ use KmbCache\Service\CacheManager;
 use KmbCacheTest\Bootstrap;
 use KmbDomain\Model\Environment;
 use KmbDomain\Model\EnvironmentInterface;
-use KmbPmProxy\Model\Module;
+use KmbPmProxy\Model\PuppetModule;
 use KmbPuppetDb\Model;
 use KmbPuppetDb\Query\NodesV4EnvironmentsQueryBuilder;
 use KmbPuppetDb\Query\Query;
@@ -27,7 +27,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     protected $nodeStatisticsService;
 
     /** @var \PHPUnit_Framework_MockObject_MockObject */
-    protected $pmProxyModuleService;
+    protected $pmProxyPuppetModuleService;
 
     /** @var EnvironmentInterface */
     protected $environment;
@@ -38,7 +38,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->nodeStatisticsService = $this->getMock('KmbPuppetDb\Service\NodeStatistics');
-        $this->pmProxyModuleService = $this->getMock('KmbPmProxy\Service\ModuleInterface');
+        $this->pmProxyPuppetModuleService = $this->getMock('KmbPmProxy\Service\PuppetModuleInterface');
         $querySuffixBuilder = $this->getMock('KmbCache\Service\QuerySuffixBuilderInterface');
         $querySuffixBuilder->expects($this->any())
             ->method('build')
@@ -74,7 +74,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
         $this->cacheManager->setQuerySuffixBuilder($querySuffixBuilder);
         $this->cacheManager->setNodesEnvironmentsQueryBuilder(new NodesV4EnvironmentsQueryBuilder());
         $this->cacheManager->setPermissionEnvironmentService($permissionEnvironmentService);
-        $this->cacheManager->setPmProxyModuleService($this->pmProxyModuleService);
+        $this->cacheManager->setPmProxyPuppetModuleService($this->pmProxyPuppetModuleService);
         $this->cacheManager->setLogger(Bootstrap::getServiceManager()->get('Logger'));
     }
 
@@ -124,15 +124,15 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     public function canRefreshExpiredWithEnvironment()
     {
         $nodesKey = CacheManager::KEY_NODE_STATISTICS . '.STABLE_PF1';
-        $modulesKey = CacheManager::KEY_MODULES . 'STABLE_PF1';
+        $modulesKey = CacheManager::KEY_PUPPET_MODULES . 'STABLE_PF1';
         $this->cacheStorage->setItem($nodesKey, ['nodesCount' => 1]);
-        $this->cacheStorage->setItem($modulesKey, ['ntp' => new Module('ntp', '1.1.2')]);
+        $this->cacheStorage->setItem($modulesKey, ['ntp' => new PuppetModule('ntp', '1.1.2')]);
         $expectedNodeStatistics = ['nodesCount' => 2];
         $this->nodeStatisticsService->expects($this->any())
             ->method('getAllAsArray')
             ->will($this->returnValue($expectedNodeStatistics));
-        $expectedModules = ['apache' => new Module('apache', '1.0.2')];
-        $this->pmProxyModuleService->expects($this->any())
+        $expectedModules = ['apache' => new PuppetModule('apache', '1.0.2')];
+        $this->pmProxyPuppetModuleService->expects($this->any())
             ->method('getAllByEnvironment')
             ->will($this->returnValue($expectedModules));
 
@@ -151,11 +151,11 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     public function canClearCache()
     {
         $nodesKey = CacheManager::KEY_NODE_STATISTICS . '.STABLE_PF1';
-        $modulesKey = CacheManager::KEY_MODULES . 'STABLE_PF1';
+        $modulesKey = CacheManager::KEY_PUPPET_MODULES . 'STABLE_PF1';
         $this->cacheStorage->setItem($nodesKey, ['nodesCount' => 1]);
         $this->cacheStorage->setItem(CacheManager::statusKeyFor($nodesKey), CacheManager::COMPLETED);
         $this->cacheStorage->setItem(CacheManager::refreshedAtKeyFor($nodesKey), $this->now);
-        $this->cacheStorage->setItem($modulesKey, ['ntp' => new Module('ntp', '1.1.2')]);
+        $this->cacheStorage->setItem($modulesKey, ['ntp' => new PuppetModule('ntp', '1.1.2')]);
         $this->cacheStorage->setItem(CacheManager::statusKeyFor($modulesKey), CacheManager::COMPLETED);
         $this->cacheStorage->setItem(CacheManager::refreshedAtKeyFor($modulesKey), $this->now);
 
@@ -199,13 +199,13 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetModules()
     {
-        $key = CacheManager::KEY_MODULES . 'STABLE_PF1';
-        $expectedModules = ['ntp' => new Module('ntp', '1.1.2')];
+        $key = CacheManager::KEY_PUPPET_MODULES . 'STABLE_PF1';
+        $expectedModules = ['ntp' => new PuppetModule('ntp', '1.1.2')];
         $this->cacheStorage->setItem($key, $expectedModules);
         $this->cacheStorage->setItem(CacheManager::statusKeyFor($key), CacheManager::COMPLETED);
         $this->cacheStorage->setItem(CacheManager::refreshedAtKeyFor($key), $this->now);
 
-        $modules = $this->cacheManager->getModules($this->environment);
+        $modules = $this->cacheManager->getPuppetModules($this->environment);
 
         $this->assertEquals($expectedModules, $modules);
     }
@@ -213,12 +213,12 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetModulesFromRealService()
     {
-        $expectedModules = ['apache' => new Module('apache', '1.0.2')];
-        $this->pmProxyModuleService->expects($this->any())
+        $expectedModules = ['apache' => new PuppetModule('apache', '1.0.2')];
+        $this->pmProxyPuppetModuleService->expects($this->any())
             ->method('getAllByEnvironment')
             ->will($this->returnValue($expectedModules));
 
-        $modules = $this->cacheManager->getModules($this->environment);
+        $modules = $this->cacheManager->getPuppetModules($this->environment);
 
         $this->assertEquals($expectedModules, $modules);
     }

@@ -49,11 +49,11 @@ return [
         'factories' => [
             'KmbCache\Service\CacheManager' => 'KmbCache\Service\CacheManagerFactory',
             'KmbCache\Service\NodeStatisticsProxy' => 'KmbCache\Service\NodeStatisticsProxyFactory',
-            'KmbCache\Service\ModuleProxy' => 'KmbCache\Service\ModuleProxyFactory',
+            'KmbCache\Service\PuppetModuleProxy' => 'KmbCache\Service\PuppetModuleProxyFactory',
         ],
         'aliases' => [
             'nodeStatisticsService' => 'KmbCache\Service\NodeStatisticsProxy',
-            'pmProxyModuleService' => 'KmbCache\Service\ModuleProxy',
+            'pmProxyPuppetModuleService' => 'KmbCache\Service\PuppetModuleProxy',
         ],
     ],
     'zfc_rbac' => [

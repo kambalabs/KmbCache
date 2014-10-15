@@ -1,20 +1,20 @@
 <?php
 namespace KmbCacheTest\Service;
 
-use KmbCache\Service\ModuleProxy;
+use KmbCache\Service\PuppetModuleProxy;
 use KmbDomain\Model\Environment;
 use KmbDomain\Model\EnvironmentInterface;
-use KmbPmProxy\Model\Module;
+use KmbPmProxy\Model\PuppetModule;
 
 class ModuleProxyTest extends \PHPUnit_Framework_TestCase
 {
-    /** @var ModuleProxy */
+    /** @var PuppetModuleProxy */
     protected $proxy;
 
     /** @var EnvironmentInterface */
     protected $environment;
 
-    /** @var  Module[] */
+    /** @var  PuppetModule[] */
     protected $expectedModules;
 
     protected function setUp()
@@ -24,11 +24,11 @@ class ModuleProxyTest extends \PHPUnit_Framework_TestCase
         $this->environment = new Environment();
         $this->environment->setName('PF1');
         $this->environment->setParent($parent);
-        $this->proxy = new ModuleProxy();
+        $this->proxy = new PuppetModuleProxy();
         $cacheManager = $this->getMock('KmbCache\Service\CacheManagerInterface');
-        $this->expectedModules = ['ntp' => new Module('ntp', '1.1.2')];
+        $this->expectedModules = ['ntp' => new PuppetModule('ntp', '1.1.2')];
         $cacheManager->expects($this->any())
-            ->method('getModules')
+            ->method('getPuppetModules')
             ->will($this->returnValue($this->expectedModules));
         $this->proxy->setCacheManager($cacheManager);
     }
@@ -54,7 +54,7 @@ class ModuleProxyTest extends \PHPUnit_Framework_TestCase
     {
         $module = $this->proxy->getByEnvironmentAndName($this->environment, 'ntp');
 
-        $this->assertInstanceOf('KmbPmProxy\Model\Module', $module);
+        $this->assertInstanceOf('KmbPmProxy\Model\PuppetModule', $module);
         $this->assertEquals('ntp', $module->getName());
         $this->assertEquals('1.1.2', $module->getVersion());
     }
