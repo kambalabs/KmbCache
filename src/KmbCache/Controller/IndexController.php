@@ -20,15 +20,16 @@
  */
 namespace KmbCache\Controller;
 
+use KmbAuthentication\Controller\AuthenticatedControllerInterface;
 use KmbCache\Service\CacheManagerInterface;
 use KmbDomain\Model\EnvironmentInterface;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Mvc\Exception;
 use Zend\View\Model\JsonModel;
 
-class IndexController extends AbstractActionController
+class IndexController extends AbstractActionController implements AuthenticatedControllerInterface
 {
-    public function refreshExpiredCacheAction()
+    public function refreshExpiredAction()
     {
         $serviceManager = $this->getServiceLocator();
 
@@ -45,7 +46,7 @@ class IndexController extends AbstractActionController
         ]);
     }
 
-    public function clearCacheAction()
+    public function clearAction()
     {
         $serviceManager = $this->getServiceLocator();
 

@@ -40,7 +40,7 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
     /** @test */
     public function canRefreshExpiredCache()
     {
-        $this->dispatch('/refresh-expired-cache');
+        $this->dispatch('/cache/refresh-expired');
 
         $this->assertResponseStatusCode(200);
         $this->assertControllerName('KmbCache\Controller\Index');
@@ -81,7 +81,7 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
     /** @test */
     public function canClearCache()
     {
-        $this->dispatch('/clear-cache');
+        $this->dispatch('/cache/clear');
 
         $this->assertResponseStatusCode(200);
         $this->assertControllerName('KmbCache\Controller\Index');

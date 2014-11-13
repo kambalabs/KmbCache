@@ -5,14 +5,13 @@ return [
             'cache' => [
                 'type'    => 'Segment',
                 'options' => [
-                    'route'    => '[/env/:envId]/:action',
+                    'route'    => '[/env/:envId]/cache/:action',
                     'constraints' => [
                         'envId' => '[0-9]+',
                         'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
                     ],
                     'defaults' => [
                         'controller' => 'KmbCache\Controller\Index',
-                        'action'     => 'refresh-expired-cache',
                         'envId' => '0',
                     ],
                 ],
@@ -61,7 +60,7 @@ return [
             'ZfcRbac\Guard\ControllerGuard' => [
                 [
                     'controller' => 'KmbCache\Controller\Index',
-                    'actions' => ['refresh-expired-cache', 'clear-cache'],
+                    'actions' => ['refresh-expired', 'clear'],
                     'roles' => ['user']
                 ],
             ]
