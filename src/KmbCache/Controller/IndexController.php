@@ -41,7 +41,8 @@ class IndexController extends AbstractActionController implements AuthenticatedC
         $refresh = $cacheManager->refreshExpiredCache($environment);
 
         return new JsonModel([
-            'message' => 'OK',
+            'title' => $this->translate('Updating cache'),
+            'message' => $this->translate('Cache data has been refreshed.'),
             'refresh' => $refresh
         ]);
     }

@@ -44,7 +44,7 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
 
         $this->assertResponseStatusCode(200);
         $this->assertControllerName('KmbCache\Controller\Index');
-        $this->assertEquals('{"message":"OK","refresh":true}', $this->getResponse()->getContent());
+        $this->assertEquals('{"title":"Updating cache","message":"Cache data has been refreshed.","refresh":true}', $this->getResponse()->getContent());
         $this->assertEquals(
             [
                 'unchangedCount' => 5,
