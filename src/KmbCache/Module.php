@@ -20,11 +20,36 @@
  */
 namespace KmbCache;
 
+use Zend\EventManager\EventInterface;
+use Zend\EventManager\EventManagerInterface;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
+use Zend\ModuleManager\Feature\BootstrapListenerInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
+use Zend\Mvc\MvcEvent;
+use Zend\View\Helper\BasePath;
+use Zend\View\HelperPluginManager;
 
-class Module implements AutoloaderProviderInterface, ConfigProviderInterface
+class Module implements AutoloaderProviderInterface, ConfigProviderInterface, BootstrapListenerInterface
 {
+    /**
+     * Listen to the bootstrap event
+     *
+     * @param EventInterface $e
+     * @return array
+     */
+    public function onBootstrap(EventInterface $e)
+    {
+        /** @var EventManagerInterface $eventManager */
+        $eventManager = $e->getApplication()->getEventManager();
+        $eventManager->attach(MvcEvent::EVENT_RENDER, function (MvcEvent $event) {
+            /** @var HelperPluginManager $viewHelperManager */
+            $viewHelperManager = $event->getApplication()->getServiceManager()->get('ViewHelperManager');
+            /** @var BasePath $basePath */
+            $basePath = $viewHelperManager->get('basePath');
+            $viewHelperManager->get('inlineScript')->prependFile($basePath() . '/js/kmb.cache.js');
+        });
+    }
+
     public function getConfig()
     {
         return include dirname(dirname(__DIR__)) . '/config/module.config.php';
