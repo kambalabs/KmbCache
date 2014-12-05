@@ -33,7 +33,7 @@ class PuppetModuleProxy implements PuppetModuleInterface
      * @param KmbDomain\Model\EnvironmentInterface $environment
      * @return KmbPmProxy\Model\PuppetModule[]
      */
-    public function getAllByEnvironment(KmbDomain\Model\EnvironmentInterface $environment)
+    public function getAllInstalledByEnvironment(KmbDomain\Model\EnvironmentInterface $environment)
     {
         return $this->cacheManager->getPuppetModules($environment);
     }
@@ -45,7 +45,7 @@ class PuppetModuleProxy implements PuppetModuleInterface
      */
     public function getByEnvironmentAndName(KmbDomain\Model\EnvironmentInterface $environment, $name)
     {
-        $puppetModules = $this->getAllByEnvironment($environment);
+        $puppetModules = $this->getAllInstalledByEnvironment($environment);
         return isset($puppetModules[$name]) ? $puppetModules[$name] : null;
     }
 

@@ -36,7 +36,7 @@ class ModuleProxyTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetAllByEnvironment()
     {
-        $modules = $this->proxy->getAllByEnvironment($this->environment);
+        $modules = $this->proxy->getAllInstalledByEnvironment($this->environment);
 
         $this->assertEquals($this->expectedModules, $modules);
     }

@@ -133,7 +133,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($expectedNodeStatistics));
         $expectedModules = ['apache' => new PuppetModule('apache', '1.0.2')];
         $this->pmProxyPuppetModuleService->expects($this->any())
-            ->method('getAllByEnvironment')
+            ->method('getAllInstalledByEnvironment')
             ->will($this->returnValue($expectedModules));
 
         $refresh = $this->cacheManager->refreshExpiredCache($this->environment);
@@ -215,7 +215,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     {
         $expectedModules = ['apache' => new PuppetModule('apache', '1.0.2')];
         $this->pmProxyPuppetModuleService->expects($this->any())
-            ->method('getAllByEnvironment')
+            ->method('getAllInstalledByEnvironment')
             ->will($this->returnValue($expectedModules));
 
         $modules = $this->cacheManager->getPuppetModules($this->environment);

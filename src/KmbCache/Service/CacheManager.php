@@ -100,7 +100,7 @@ class CacheManager implements CacheManagerInterface
     {
         if ($environment != null) {
             return $this->refresh(static::KEY_PUPPET_MODULES . $environment->getNormalizedName(), function () use ($environment) {
-                return $this->getPmProxyPuppetModuleService()->getAllByEnvironment($environment);
+                return $this->getPmProxyPuppetModuleService()->getAllInstalledByEnvironment($environment);
             });
         }
         return false;
