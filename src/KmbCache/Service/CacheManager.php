@@ -40,7 +40,8 @@ class CacheManager implements CacheManagerInterface
     const STATUS_SUFFIX = '.status';
     const REFRESHED_AT_SUFFIX = '.refreshedAt';
     const KEY_NODE_STATISTICS = 'nodeStatistics';
-    const KEY_PUPPET_MODULES = 'modules.';
+    const KEY_INSTALLED_PUPPET_MODULES = 'installedModules.';
+    const KEY_INSTALLABLE_PUPPET_MODULES = 'installableModules.';
     const PENDING = 'pending';
     const COMPLETED = 'completed';
     const EXPIRATION_TIME = '5 minutes';
@@ -96,10 +97,34 @@ class CacheManager implements CacheManagerInterface
      * @param EnvironmentInterface $environment
      * @return bool
      */
-    public function refreshPuppetModulesIfExpired($environment)
+    public function refreshInstallablePuppetModulesIfExpired($environment)
     {
         if ($environment != null) {
-            return $this->refresh(static::KEY_PUPPET_MODULES . $environment->getNormalizedName(), function () use ($environment) {
+            return $this->refresh(static::KEY_INSTALLABLE_PUPPET_MODULES . $environment->getNormalizedName(), function () use ($environment) {
+                return $this->getPmProxyPuppetModuleService()->getAllInstallableByEnvironment($environment);
+            });
+        }
+        return false;
+    }
+
+    /**
+     * @param EnvironmentInterface $environment
+     * @return PuppetModule[]
+     */
+    public function getInstallablePuppetModules($environment = null)
+    {
+        $this->refreshInstallablePuppetModulesIfExpired($environment);
+        return $this->cacheStorage->getItem(static::KEY_INSTALLABLE_PUPPET_MODULES . $environment->getNormalizedName());
+    }
+
+    /**
+     * @param EnvironmentInterface $environment
+     * @return bool
+     */
+    public function refreshInstalledPuppetModulesIfExpired($environment)
+    {
+        if ($environment != null) {
+            return $this->refresh(static::KEY_INSTALLED_PUPPET_MODULES . $environment->getNormalizedName(), function () use ($environment) {
                 return $this->getPmProxyPuppetModuleService()->getAllInstalledByEnvironment($environment);
             });
         }
@@ -110,10 +135,10 @@ class CacheManager implements CacheManagerInterface
      * @param EnvironmentInterface $environment
      * @return PuppetModule[]
      */
-    public function getPuppetModules($environment = null)
+    public function getInstalledPuppetModules($environment = null)
     {
-        $this->refreshPuppetModulesIfExpired($environment);
-        return $this->cacheStorage->getItem(static::KEY_PUPPET_MODULES . $environment->getNormalizedName());
+        $this->refreshInstalledPuppetModulesIfExpired($environment);
+        return $this->cacheStorage->getItem(static::KEY_INSTALLED_PUPPET_MODULES . $environment->getNormalizedName());
     }
 
     /**
@@ -129,7 +154,7 @@ class CacheManager implements CacheManagerInterface
         $query = $this->getNodesEnvironmentsQueryBuilder()->build($environments);
 
         $nodesRefreshed = $this->refreshNodeStatisticsIfExpired($query);
-        $modulesRefreshed = $this->refreshPuppetModulesIfExpired($environment);
+        $modulesRefreshed = $this->refreshInstalledPuppetModulesIfExpired($environment);
 
         return $nodesRefreshed || $modulesRefreshed;
     }
@@ -147,7 +172,7 @@ class CacheManager implements CacheManagerInterface
         $this->clearCacheFor(static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query));
 
         if ($environment != null) {
-            $this->clearCacheFor(static::KEY_PUPPET_MODULES . $environment->getNormalizedName());
+            $this->clearCacheFor(static::KEY_INSTALLED_PUPPET_MODULES . $environment->getNormalizedName());
         }
     }
 

@@ -21,7 +21,7 @@
 namespace KmbCache\Service;
 
 use KmbDomain\Model\EnvironmentInterface;
-use KmbPmProxy\Model\Module;
+use KmbPmProxy\Model\PuppetModule;
 use KmbPuppetDb\Query\Query;
 
 interface CacheManagerInterface
@@ -42,13 +42,25 @@ interface CacheManagerInterface
      * @param EnvironmentInterface $environment
      * @return bool
      */
-    public function refreshPuppetModulesIfExpired($environment);
+    public function refreshInstallablePuppetModulesIfExpired($environment);
 
     /**
      * @param EnvironmentInterface $environment
-     * @return Module[]
+     * @return PuppetModule[]
      */
-    public function getPuppetModules($environment = null);
+    public function getInstallablePuppetModules($environment = null);
+
+    /**
+     * @param EnvironmentInterface $environment
+     * @return bool
+     */
+    public function refreshInstalledPuppetModulesIfExpired($environment);
+
+    /**
+     * @param EnvironmentInterface $environment
+     * @return PuppetModule[]
+     */
+    public function getInstalledPuppetModules($environment = null);
 
     /**
      * Refresh cache if necessary.

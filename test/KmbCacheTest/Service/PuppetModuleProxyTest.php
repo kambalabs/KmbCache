@@ -6,7 +6,7 @@ use KmbDomain\Model\Environment;
 use KmbDomain\Model\EnvironmentInterface;
 use KmbPmProxy\Model\PuppetModule;
 
-class ModuleProxyTest extends \PHPUnit_Framework_TestCase
+class PuppetModuleProxyTest extends \PHPUnit_Framework_TestCase
 {
     /** @var PuppetModuleProxy */
     protected $proxy;
@@ -15,7 +15,10 @@ class ModuleProxyTest extends \PHPUnit_Framework_TestCase
     protected $environment;
 
     /** @var  PuppetModule[] */
-    protected $expectedModules;
+    protected $expectedInstallableModules;
+
+    /** @var  PuppetModule[] */
+    protected $expectedInstalledModules;
 
     protected function setUp()
     {
@@ -26,19 +29,31 @@ class ModuleProxyTest extends \PHPUnit_Framework_TestCase
         $this->environment->setParent($parent);
         $this->proxy = new PuppetModuleProxy();
         $cacheManager = $this->getMock('KmbCache\Service\CacheManagerInterface');
-        $this->expectedModules = ['ntp' => new PuppetModule('ntp', '1.1.2')];
+        $this->expectedInstalledModules = ['ntp' => new PuppetModule('ntp', '1.1.2')];
+        $this->expectedInstallableModules = ['apache' => new PuppetModule('apache', '2.4.2'), 'mysql' => new PuppetModule('mysql', '5.5.3')];
         $cacheManager->expects($this->any())
-            ->method('getPuppetModules')
-            ->will($this->returnValue($this->expectedModules));
+            ->method('getInstalledPuppetModules')
+            ->will($this->returnValue($this->expectedInstalledModules));
+        $cacheManager->expects($this->any())
+            ->method('getInstallablePuppetModules')
+            ->will($this->returnValue($this->expectedInstallableModules));
         $this->proxy->setCacheManager($cacheManager);
     }
 
     /** @test */
-    public function canGetAllByEnvironment()
+    public function canGetAllInstallableByEnvironment()
+    {
+        $modules = $this->proxy->getAllInstallableByEnvironment($this->environment);
+
+        $this->assertEquals($this->expectedInstallableModules, $modules);
+    }
+
+    /** @test */
+    public function canGetAllInstalledByEnvironment()
     {
         $modules = $this->proxy->getAllInstalledByEnvironment($this->environment);
 
-        $this->assertEquals($this->expectedModules, $modules);
+        $this->assertEquals($this->expectedInstalledModules, $modules);
     }
 
     /** @test */

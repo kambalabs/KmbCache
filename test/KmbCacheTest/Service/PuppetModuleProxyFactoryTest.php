@@ -4,7 +4,7 @@ namespace KmbCacheTest\Service;
 use KmbCache\Service\PuppetModuleProxy;
 use KmbCacheTest\Bootstrap;
 
-class ModuleProxyFactoryTest extends \PHPUnit_Framework_TestCase
+class PuppetModuleProxyFactoryTest extends \PHPUnit_Framework_TestCase
 {
     /** @test */
     public function canCreateService()
