@@ -54,6 +54,7 @@ class PuppetModuleProxy implements PuppetModuleInterface
      */
     public function installInEnvironment(KmbDomain\Model\EnvironmentInterface $environment, KmbPmProxy\Model\PuppetModule $module, $version)
     {
+        $this->cacheManager->installPuppetModule($environment, $module, $version);
     }
 
     /**
