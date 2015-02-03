@@ -63,6 +63,13 @@ interface CacheManagerInterface
     public function getInstalledPuppetModules($environment = null);
 
     /**
+     * @param EnvironmentInterface $environment
+     * @param PuppetModule         $module
+     * @param string               $version
+     */
+    public function installPuppetModule(EnvironmentInterface $environment, PuppetModule $module, $version);
+
+    /**
      * Refresh cache if necessary.
      *
      * @param EnvironmentInterface $environment
