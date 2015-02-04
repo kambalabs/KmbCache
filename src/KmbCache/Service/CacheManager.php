@@ -149,9 +149,9 @@ class CacheManager implements CacheManagerInterface
     public function installPuppetModule(EnvironmentInterface $environment, PuppetModule $module, $version)
     {
         $this->getPmProxyPuppetModuleService()->installInEnvironment($environment, $module, $version);
-        $this->clearCacheFor(static::KEY_INSTALLABLE_PUPPET_MODULES);
+        $this->clearCacheFor(static::KEY_INSTALLABLE_PUPPET_MODULES . $environment->getNormalizedName());
         $this->refreshInstallablePuppetModulesIfExpired($environment);
-        $this->clearCacheFor(static::KEY_INSTALLED_PUPPET_MODULES);
+        $this->clearCacheFor(static::KEY_INSTALLED_PUPPET_MODULES . $environment->getNormalizedName());
         $this->refreshInstalledPuppetModulesIfExpired($environment);
     }
 
