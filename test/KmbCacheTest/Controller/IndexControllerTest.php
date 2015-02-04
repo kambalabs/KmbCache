@@ -35,6 +35,11 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
         $serviceManager->setService('DateTimeFactory', new FakeDateTimeFactory(new \DateTime(static::FAKE_DATETIME)));
         $serviceManager->setService('CacheService', $this->cacheStorage);
         $serviceManager->setService('KmbPuppetDb\Http\Client', new FakeHttpClient(static::FAKE_DATETIME));
+        $pmProxyClient = $this->getMock('KmbPmProxy\Client');
+        $pmProxyClient->expects($this->any())
+            ->method('get')
+            ->will($this->returnValue(json_decode(json_encode(['dns' => ['1.0.0'], 'apache' => ['0.1.0', '0.0.8']]))));
+        $serviceManager->setService('KmbPmProxy\Client', $pmProxyClient);
     }
 
     /** @test */

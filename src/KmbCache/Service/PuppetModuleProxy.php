@@ -30,6 +30,14 @@ class PuppetModuleProxy implements PuppetModuleInterface
     protected $cacheManager;
 
     /**
+     * @return KmbPmProxy\Model\PuppetModule[]
+     */
+    public function getAllAvailable()
+    {
+        return $this->cacheManager->getAvailablePuppetModules();
+    }
+
+    /**
      * @param KmbDomain\Model\EnvironmentInterface $environment
      * @return KmbPmProxy\Model\PuppetModule[]
      */
@@ -55,6 +63,15 @@ class PuppetModuleProxy implements PuppetModuleInterface
     public function installInEnvironment(KmbDomain\Model\EnvironmentInterface $environment, KmbPmProxy\Model\PuppetModule $module, $version)
     {
         $this->cacheManager->installPuppetModule($environment, $module, $version);
+    }
+
+    /**
+     * @param KmbDomain\Model\EnvironmentInterface $environment
+     * @param KmbPmProxy\Model\PuppetModule        $module
+     */
+    public function removeFromEnvironment(KmbDomain\Model\EnvironmentInterface $environment, KmbPmProxy\Model\PuppetModule $module)
+    {
+        $this->cacheManager->removePuppetModule($environment, $module);
     }
 
     /**

@@ -70,6 +70,12 @@ interface CacheManagerInterface
     public function installPuppetModule(EnvironmentInterface $environment, PuppetModule $module, $version);
 
     /**
+     * @param EnvironmentInterface $environment
+     * @param PuppetModule         $module
+     */
+    public function removePuppetModule(EnvironmentInterface $environment, PuppetModule $module);
+
+    /**
      * Refresh cache if necessary.
      *
      * @param EnvironmentInterface $environment
@@ -82,4 +88,9 @@ interface CacheManagerInterface
      * @param EnvironmentInterface $environment
      */
     public function clearCache($environment = null);
+
+    /**
+     * @return PuppetModule[]
+     */
+    public function getAvailablePuppetModules();
 }

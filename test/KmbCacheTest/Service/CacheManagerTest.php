@@ -111,6 +111,7 @@ class CacheManagerTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function cannotRefreshExpiredCacheWhenNoCacheIsExpired()
     {
+        $this->cacheStorage->setItem(CacheManager::refreshedAtKeyFor(CacheManager::KEY_AVAILABLE_PUPPET_MODULES), $this->now);
         $this->cacheStorage->setItem(CacheManager::refreshedAtKeyFor(CacheManager::KEY_NODE_STATISTICS), $this->now);
         $this->cacheStorage->setItem(CacheManager::KEY_NODE_STATISTICS, ['nodesCount' => 1]);
 

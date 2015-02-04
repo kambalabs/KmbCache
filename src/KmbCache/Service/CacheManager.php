@@ -40,6 +40,7 @@ class CacheManager implements CacheManagerInterface
     const STATUS_SUFFIX = '.status';
     const REFRESHED_AT_SUFFIX = '.refreshedAt';
     const KEY_NODE_STATISTICS = 'nodeStatistics';
+    const KEY_AVAILABLE_PUPPET_MODULES = 'availableModules';
     const KEY_INSTALLED_PUPPET_MODULES = 'installedModules.';
     const KEY_INSTALLABLE_PUPPET_MODULES = 'installableModules.';
     const PENDING = 'pending';
@@ -91,6 +92,25 @@ class CacheManager implements CacheManagerInterface
     {
         $this->refreshNodeStatisticsIfExpired($query);
         return $this->cacheStorage->getItem(static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query));
+    }
+
+    /**
+     * @return bool
+     */
+    public function refreshAvailablePuppetModulesIfExpired()
+    {
+        return $this->refresh(static::KEY_AVAILABLE_PUPPET_MODULES, function () {
+            return $this->getPmProxyPuppetModuleService()->getAllAvailable();
+        });
+    }
+
+    /**
+     * @return PuppetModule[]
+     */
+    public function getAvailablePuppetModules()
+    {
+        $this->refreshAvailablePuppetModulesIfExpired();
+        return $this->cacheStorage->getItem(static::KEY_AVAILABLE_PUPPET_MODULES);
     }
 
     /**
@@ -149,6 +169,23 @@ class CacheManager implements CacheManagerInterface
     public function installPuppetModule(EnvironmentInterface $environment, PuppetModule $module, $version)
     {
         $this->getPmProxyPuppetModuleService()->installInEnvironment($environment, $module, $version);
+        $this->clearCacheFor(static::KEY_AVAILABLE_PUPPET_MODULES);
+        $this->refreshAvailablePuppetModulesIfExpired();
+        $this->clearCacheFor(static::KEY_INSTALLABLE_PUPPET_MODULES . $environment->getNormalizedName());
+        $this->refreshInstallablePuppetModulesIfExpired($environment);
+        $this->clearCacheFor(static::KEY_INSTALLED_PUPPET_MODULES . $environment->getNormalizedName());
+        $this->refreshInstalledPuppetModulesIfExpired($environment);
+    }
+
+    /**
+     * @param EnvironmentInterface $environment
+     * @param PuppetModule         $module
+     */
+    public function removePuppetModule(EnvironmentInterface $environment, PuppetModule $module)
+    {
+        $this->getPmProxyPuppetModuleService()->removeFromEnvironment($environment, $module);
+        $this->clearCacheFor(static::KEY_AVAILABLE_PUPPET_MODULES);
+        $this->refreshAvailablePuppetModulesIfExpired();
         $this->clearCacheFor(static::KEY_INSTALLABLE_PUPPET_MODULES . $environment->getNormalizedName());
         $this->refreshInstallablePuppetModulesIfExpired($environment);
         $this->clearCacheFor(static::KEY_INSTALLED_PUPPET_MODULES . $environment->getNormalizedName());
@@ -170,8 +207,9 @@ class CacheManager implements CacheManagerInterface
         $nodesRefreshed = $this->refreshNodeStatisticsIfExpired($query);
         $installedModulesRefreshed = $this->refreshInstalledPuppetModulesIfExpired($environment);
         $installableModulesRefreshed = $this->refreshInstallablePuppetModulesIfExpired($environment);
+        $availableModulesRefreshed = $this->refreshAvailablePuppetModulesIfExpired();
 
-        return $nodesRefreshed || $installedModulesRefreshed || $installableModulesRefreshed;
+        return $nodesRefreshed || $installedModulesRefreshed || $installableModulesRefreshed || $availableModulesRefreshed;
     }
 
     /**
@@ -185,10 +223,11 @@ class CacheManager implements CacheManagerInterface
         $query = $this->getNodesEnvironmentsQueryBuilder()->build($environments);
 
         $this->clearCacheFor(static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query));
+        $this->clearCacheFor(static::KEY_AVAILABLE_PUPPET_MODULES);
 
         if ($environment != null) {
             $this->clearCacheFor(static::KEY_INSTALLED_PUPPET_MODULES . $environment->getNormalizedName());
-            $this->clearCacheFor(static::KEY_INSTALLABLE_PUPPET_MODULES. $environment->getNormalizedName());
+            $this->clearCacheFor(static::KEY_INSTALLABLE_PUPPET_MODULES . $environment->getNormalizedName());
         }
     }
 
