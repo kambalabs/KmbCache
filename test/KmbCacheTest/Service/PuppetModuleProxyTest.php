@@ -59,7 +59,7 @@ class PuppetModuleProxyTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function cannotGetUnknownModuleByEnvironmentAndName()
     {
-        $module = $this->proxy->getByEnvironmentAndName($this->environment, 'unknown');
+        $module = $this->proxy->getInstalledByEnvironmentAndName($this->environment, 'unknown');
 
         $this->assertNull($module);
     }
@@ -67,7 +67,7 @@ class PuppetModuleProxyTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canGetByEnvironmentAndName()
     {
-        $module = $this->proxy->getByEnvironmentAndName($this->environment, 'ntp');
+        $module = $this->proxy->getInstalledByEnvironmentAndName($this->environment, 'ntp');
 
         $this->assertInstanceOf('KmbPmProxy\Model\PuppetModule', $module);
         $this->assertEquals('ntp', $module->getName());
