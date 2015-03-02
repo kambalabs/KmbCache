@@ -18,11 +18,28 @@
  * You should have received a copy of the GNU General Public License
  * along with Kamba.  If not, see <http://www.gnu.org/licenses/>.
  */
-namespace KmbCache\Exception;
+namespace KmbCache\Service;
 
-/**
- * Runtime exception
- */
-class InvalidArgumentException extends \InvalidArgumentException implements ExceptionInterface
+use KmbPmProxy\Service\PuppetModule;
+use Zend\ServiceManager\FactoryInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
+
+class AvailablePuppetModuleCacheManagerFactory implements FactoryInterface
 {
+    /**
+     * Create service
+     *
+     * @param ServiceLocatorInterface $serviceLocator
+     * @return mixed
+     */
+    public function createService(ServiceLocatorInterface $serviceLocator)
+    {
+        $service = new AvailablePuppetModuleCacheManager();
+
+        /** @var PuppetModule $puppetModuleService */
+        $puppetModuleService = $serviceLocator->get('KmbPmProxy\Service\PuppetModule');
+        $service->setPuppetModuleService($puppetModuleService);
+
+        return $service;
+    }
 }

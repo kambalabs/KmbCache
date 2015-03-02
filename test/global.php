@@ -65,4 +65,39 @@ return [
             'translate' => 'KmbBaseTest\Controller\Plugin\FakeTranslateFactory',
         ],
     ],
+    'service_manager' => [
+        'invokables' => [
+            'KmbCacheTest\Service\FakeCacheManager' => 'KmbCacheTest\Service\FakeCacheManager',
+            'KmbCacheTest\Service\NoDescriptionCacheManager' => 'KmbCacheTest\Service\NoDescriptionCacheManager',
+            'KmbCacheTest\Service\InvalidCacheManager' => 'KmbCacheTest\Service\InvalidCacheManager',
+        ]
+    ],
+    'cache_manager' => [
+        'nodeStatistics' => [
+            'service' => 'KmbCacheTest\Service\FakeCacheManager',
+        ],
+        'availableModules' => [
+            'service' => 'KmbCacheTest\Service\FakeCacheManager',
+        ],
+        'installableModules' => [
+            'service' => 'KmbCacheTest\Service\FakeCacheManager',
+        ],
+        'installedModules' => [
+            'service' => 'KmbCacheTest\Service\FakeCacheManager',
+        ],
+        'fake' => [
+            'description' => 'Fake data',
+            'service' => 'KmbCacheTest\Service\FakeCacheManager',
+        ],
+        'noDescription' => [
+            'service' => 'KmbCacheTest\Service\NoDescriptionCacheManager',
+        ],
+        'noService' => [
+            'description' => 'Fake data',
+        ],
+        'invalid' => [
+            'description' => 'Fake data',
+            'service' => 'KmbCacheTest\Service\InvalidCacheManager',
+        ],
+    ],
 ];

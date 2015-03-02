@@ -20,13 +20,26 @@
  */
 namespace KmbCache\Service;
 
-use KmbPuppetDb\Query\Query;
+use KmbPmProxy\Service\PuppetModule;
+use Zend\ServiceManager\FactoryInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
 
-interface QuerySuffixBuilderInterface
+class InstalledPuppetModuleCacheManagerFactory implements FactoryInterface
 {
     /**
-     * @param Query|array $query
-     * @return string
+     * Create service
+     *
+     * @param ServiceLocatorInterface $serviceLocator
+     * @return mixed
      */
-    public function build($query);
+    public function createService(ServiceLocatorInterface $serviceLocator)
+    {
+        $service = new InstalledPuppetModuleCacheManager();
+
+        /** @var PuppetModule $puppetModuleService */
+        $puppetModuleService = $serviceLocator->get('KmbPmProxy\Service\PuppetModule');
+        $service->setPuppetModuleService($puppetModuleService);
+
+        return $service;
+    }
 }

@@ -20,36 +20,41 @@
  */
 namespace KmbCache\Service;
 
-use KmbDomain\Model\EnvironmentInterface;
+use KmbPuppetDb\Service\NodeStatisticsInterface;
 
-interface CacheManagerInterface
+class NodeStatisticsCacheManager extends AbstractCacheManager
 {
-    /**
-     * @param mixed $context
-     * @return mixed
-     */
-    public function getDataFromRealService($context = null);
+    /** @var  NodeStatisticsInterface */
+    protected $nodeStatisticsService;
 
     /**
      * @param mixed $context
      * @return mixed
      */
-    public function getData($context = null);
+    public function getDataFromRealService($context = null)
+    {
+        return $this->nodeStatisticsService->getAllAsArray($context);
+    }
 
     /**
-     * Refresh cache if necessary.
+     * Set NodeStatisticsService.
      *
-     * @param EnvironmentInterface $environment
-     * @param bool                 $forceRefresh
-     * @return bool
+     * @param \KmbPuppetDb\Service\NodeStatisticsInterface $nodeStatisticsService
+     * @return NodeStatisticsCacheManager
      */
-    public function refreshExpiredCache($environment = null, $forceRefresh = false);
+    public function setNodeStatisticsService($nodeStatisticsService)
+    {
+        $this->nodeStatisticsService = $nodeStatisticsService;
+        return $this;
+    }
 
     /**
-     * Force cache refresh.
+     * Get NodeStatisticsService.
      *
-     * @param EnvironmentInterface $environment
-     * @return bool
+     * @return \KmbPuppetDb\Service\NodeStatisticsInterface
      */
-    public function forceRefreshCache($environment = null);
+    public function getNodeStatisticsService()
+    {
+        return $this->nodeStatisticsService;
+    }
 }

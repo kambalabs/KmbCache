@@ -42,17 +42,13 @@ return [
             'Zend\Cache\Service\StorageCacheAbstractServiceFactory',
             'Zend\Log\LoggerAbstractServiceFactory',
         ],
-        'invokables' => [
-            'KmbCache\Service\QuerySuffixBuilder' => 'KmbCache\Service\QuerySuffixBuilder',
-        ],
         'factories' => [
-            'KmbCache\Service\CacheManager' => 'KmbCache\Service\CacheManagerFactory',
-            'KmbCache\Service\NodeStatisticsProxy' => 'KmbCache\Service\NodeStatisticsProxyFactory',
-            'KmbCache\Service\PuppetModuleProxy' => 'KmbCache\Service\PuppetModuleProxyFactory',
-        ],
-        'aliases' => [
-            'nodeStatisticsService' => 'KmbCache\Service\NodeStatisticsProxy',
-            'pmProxyPuppetModuleService' => 'KmbCache\Service\PuppetModuleProxy',
+            'KmbCache\Service\MainCacheManager' => 'KmbCache\Service\MainCacheManagerFactory',
+            'KmbCache\Service\NodeStatisticsCacheManager' => 'KmbCache\Service\NodeStatisticsCacheManagerFactory',
+            'KmbCache\Service\NodeStatisticsDataContextBuilder' => 'KmbCache\Service\NodeStatisticsDataContextBuilderFactory',
+            'KmbCache\Service\AvailablePuppetModuleCacheManager' => 'KmbCache\Service\AvailablePuppetModuleCacheManagerFactory',
+            'KmbCache\Service\InstallablePuppetModuleCacheManager' => 'KmbCache\Service\InstallablePuppetModuleCacheManagerFactory',
+            'KmbCache\Service\InstalledPuppetModuleCacheManager' => 'KmbCache\Service\InstalledPuppetModuleCacheManagerFactory',
         ],
     ],
     'zfc_rbac' => [
@@ -60,7 +56,7 @@ return [
             'ZfcRbac\Guard\ControllerGuard' => [
                 [
                     'controller' => 'KmbCache\Controller\Index',
-                    'actions' => ['refresh-expired', 'clear'],
+                    'actions' => ['refresh-expired', 'refresh'],
                     'roles' => ['user']
                 ],
             ]
@@ -71,6 +67,24 @@ return [
             'paths' => [
                 __DIR__ . '/../public',
             ],
+        ],
+    ],
+    'cache_manager' => [
+        'nodeStatistics' => [
+            'description' => 'Servers statistics',
+            'service' => 'KmbCache\Service\NodeStatisticsCacheManager',
+        ],
+        'availableModules' => [
+            'description' => 'Available modules',
+            'service' => 'KmbCache\Service\AvailablePuppetModuleCacheManager',
+        ],
+        'installableModules' => [
+            'description' => 'Modules installable in environment',
+            'service' => 'KmbCache\Service\InstallablePuppetModuleCacheManager',
+        ],
+        'installedModules' => [
+            'description' => 'Modules installed in environment',
+            'service' => 'KmbCache\Service\InstalledPuppetModuleCacheManager',
         ],
     ],
 ];

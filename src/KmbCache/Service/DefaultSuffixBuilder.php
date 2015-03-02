@@ -18,11 +18,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Kamba.  If not, see <http://www.gnu.org/licenses/>.
  */
-namespace KmbCache\Exception;
+namespace KmbCache\Service;
 
-/**
- * Exception marker interface
- */
-interface ExceptionInterface
+use KmbDomain\Model\EnvironmentInterface;
+
+class DefaultSuffixBuilder implements SuffixBuilderInterface
 {
+    /**
+     * @param EnvironmentInterface $context
+     * @return string
+     */
+    public function build($context)
+    {
+        if (empty($context)) {
+            return '';
+        }
+        return '.' . $context->getNormalizedName();
+    }
 }

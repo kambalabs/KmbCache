@@ -20,36 +20,11 @@
  */
 namespace KmbCache\Service;
 
-use KmbDomain\Model\EnvironmentInterface;
-
-interface CacheManagerInterface
+interface SuffixBuilderInterface
 {
     /**
      * @param mixed $context
-     * @return mixed
+     * @return string
      */
-    public function getDataFromRealService($context = null);
-
-    /**
-     * @param mixed $context
-     * @return mixed
-     */
-    public function getData($context = null);
-
-    /**
-     * Refresh cache if necessary.
-     *
-     * @param EnvironmentInterface $environment
-     * @param bool                 $forceRefresh
-     * @return bool
-     */
-    public function refreshExpiredCache($environment = null, $forceRefresh = false);
-
-    /**
-     * Force cache refresh.
-     *
-     * @param EnvironmentInterface $environment
-     * @return bool
-     */
-    public function forceRefreshCache($environment = null);
+    public function build($context);
 }

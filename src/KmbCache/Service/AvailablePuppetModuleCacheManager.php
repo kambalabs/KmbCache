@@ -20,36 +20,41 @@
  */
 namespace KmbCache\Service;
 
-use KmbDomain\Model\EnvironmentInterface;
+use KmbPmProxy\Service\PuppetModuleInterface;
 
-interface CacheManagerInterface
+class AvailablePuppetModuleCacheManager extends AbstractCacheManager
 {
-    /**
-     * @param mixed $context
-     * @return mixed
-     */
-    public function getDataFromRealService($context = null);
+    /** @var  PuppetModuleInterface */
+    protected $puppetModuleService;
 
     /**
      * @param mixed $context
      * @return mixed
      */
-    public function getData($context = null);
+    public function getDataFromRealService($context = null)
+    {
+        return $this->puppetModuleService->getAllAvailable();
+    }
 
     /**
-     * Refresh cache if necessary.
+     * Set PuppetModuleService.
      *
-     * @param EnvironmentInterface $environment
-     * @param bool                 $forceRefresh
-     * @return bool
+     * @param PuppetModuleInterface $puppetModuleService
+     * @return AvailablePuppetModuleCacheManager
      */
-    public function refreshExpiredCache($environment = null, $forceRefresh = false);
+    public function setPuppetModuleService($puppetModuleService)
+    {
+        $this->puppetModuleService = $puppetModuleService;
+        return $this;
+    }
 
     /**
-     * Force cache refresh.
+     * Get PuppetModuleService.
      *
-     * @param EnvironmentInterface $environment
-     * @return bool
+     * @return PuppetModuleInterface
      */
-    public function forceRefreshCache($environment = null);
+    public function getPuppetModuleService()
+    {
+        return $this->puppetModuleService;
+    }
 }

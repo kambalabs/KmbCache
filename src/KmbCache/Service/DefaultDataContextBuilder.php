@@ -20,25 +20,16 @@
  */
 namespace KmbCache\Service;
 
-use Zend\ServiceManager\FactoryInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
+use KmbDomain\Model\EnvironmentInterface;
 
-class PuppetModuleProxyFactory implements FactoryInterface
+class DefaultDataContextBuilder implements DataContextBuilderInterface
 {
     /**
-     * Create service
-     *
-     * @param ServiceLocatorInterface $serviceLocator
+     * @param EnvironmentInterface $environment
      * @return mixed
      */
-    public function createService(ServiceLocatorInterface $serviceLocator)
+    public function build(EnvironmentInterface $environment = null)
     {
-        $proxy = new PuppetModuleProxy();
-
-        /** @var CacheManagerInterface $cacheManager */
-        $cacheManager = $serviceLocator->get('KmbCache\Service\CacheManager');
-        $proxy->setCacheManager($cacheManager);
-
-        return $proxy;
+        return $environment;
     }
 }

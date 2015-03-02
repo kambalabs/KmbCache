@@ -21,7 +21,7 @@
 namespace KmbCache\Controller;
 
 use KmbAuthentication\Controller\AuthenticatedControllerInterface;
-use KmbCache\Service\CacheManagerInterface;
+use KmbCache\Service\MainCacheManager;
 use KmbDomain\Model\EnvironmentInterface;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Mvc\Exception;
@@ -36,9 +36,9 @@ class IndexController extends AbstractActionController implements AuthenticatedC
         /** @var EnvironmentInterface $environment */
         $environment = $serviceManager->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
 
-        /** @var CacheManagerInterface $cacheManager */
-        $cacheManager = $serviceManager->get('KmbCache\Service\CacheManager');
-        $refresh = $cacheManager->refreshExpiredCache($environment);
+        /** @var MainCacheManager $mainCacheManager */
+        $mainCacheManager = $serviceManager->get('KmbCache\Service\MainCacheManager');
+        $refresh = $mainCacheManager->refreshExpiredCache($environment);
 
         return new JsonModel([
             'title' => $this->translate('Updating cache'),
@@ -47,16 +47,16 @@ class IndexController extends AbstractActionController implements AuthenticatedC
         ]);
     }
 
-    public function clearAction()
+    public function refreshAction()
     {
         $serviceManager = $this->getServiceLocator();
 
         /** @var EnvironmentInterface $environment */
         $environment = $serviceManager->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
 
-        /** @var CacheManagerInterface $cacheManager */
-        $cacheManager = $serviceManager->get('KmbCache\Service\CacheManager');
-        $cacheManager->clearCache($environment);
+        /** @var MainCacheManager $mainCacheManager */
+        $mainCacheManager = $serviceManager->get('KmbCache\Service\MainCacheManager');
+        $mainCacheManager->forceRefreshCache($environment);
 
         return new JsonModel(['message' => 'OK']);
     }

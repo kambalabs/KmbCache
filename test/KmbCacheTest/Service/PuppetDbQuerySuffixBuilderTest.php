@@ -1,16 +1,16 @@
 <?php
 namespace KmbCacheTest\Service;
 
-use KmbCache\Service\QuerySuffixBuilder;
+use KmbCache\Service\PuppetDbQuerySuffixBuilder;
 use KmbPuppetDb\Query\Query;
 
-class QuerySuffixBuilderTest extends \PHPUnit_Framework_TestCase
+class PuppetDbQuerySuffixBuilderTest extends \PHPUnit_Framework_TestCase
 {
     /** @test */
     public function canBuildQuery()
     {
         $query = new Query(['=', 'environment', 'STABLE_PF1']);
-        $querySuffixBuilder = new QuerySuffixBuilder();
+        $querySuffixBuilder = new PuppetDbQuerySuffixBuilder();
 
         $suffix = $querySuffixBuilder->build($query);
 
@@ -20,7 +20,7 @@ class QuerySuffixBuilderTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canBuildNullQuery()
     {
-        $querySuffixBuilder = new QuerySuffixBuilder();
+        $querySuffixBuilder = new PuppetDbQuerySuffixBuilder();
 
         $this->assertEquals('', $querySuffixBuilder->build(null));
     }
@@ -28,7 +28,7 @@ class QuerySuffixBuilderTest extends \PHPUnit_Framework_TestCase
     /** @test */
     public function canBuildArrayQuery()
     {
-        $querySuffixBuilder = new QuerySuffixBuilder();
+        $querySuffixBuilder = new PuppetDbQuerySuffixBuilder();
 
         $suffix = $querySuffixBuilder->build(['=', 'environment', 'STABLE_PF1']);
 

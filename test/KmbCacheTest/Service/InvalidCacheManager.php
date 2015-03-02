@@ -18,38 +18,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Kamba.  If not, see <http://www.gnu.org/licenses/>.
  */
-namespace KmbCache\Service;
+namespace KmbCacheTest\Service;
 
-use KmbDomain\Model\EnvironmentInterface;
-
-interface CacheManagerInterface
+class InvalidCacheManager
 {
-    /**
-     * @param mixed $context
-     * @return mixed
-     */
-    public function getDataFromRealService($context = null);
 
-    /**
-     * @param mixed $context
-     * @return mixed
-     */
-    public function getData($context = null);
-
-    /**
-     * Refresh cache if necessary.
-     *
-     * @param EnvironmentInterface $environment
-     * @param bool                 $forceRefresh
-     * @return bool
-     */
-    public function refreshExpiredCache($environment = null, $forceRefresh = false);
-
-    /**
-     * Force cache refresh.
-     *
-     * @param EnvironmentInterface $environment
-     * @return bool
-     */
-    public function forceRefreshCache($environment = null);
 }

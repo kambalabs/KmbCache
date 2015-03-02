@@ -18,27 +18,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Kamba.  If not, see <http://www.gnu.org/licenses/>.
  */
-namespace KmbCache\Service;
+namespace KmbCacheTest\Service;
 
-use Zend\ServiceManager\FactoryInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
+use KmbCache\Service\AbstractCacheManager;
 
-class NodeStatisticsProxyFactory implements FactoryInterface
+class NoDescriptionCacheManager extends AbstractCacheManager
 {
     /**
-     * Create service
-     *
-     * @param ServiceLocatorInterface $serviceLocator
+     * @param mixed $context
      * @return mixed
      */
-    public function createService(ServiceLocatorInterface $serviceLocator)
+    public function getDataFromRealService($context = null)
     {
-        $service = new NodeStatisticsProxy();
-
-        /** @var CacheManagerInterface $cacheManager */
-        $cacheManager = $serviceLocator->get('KmbCache\Service\CacheManager');
-        $service->setCacheManager($cacheManager);
-
-        return $service;
+        return ['foo', 'bar', 'baz'];
     }
 }
