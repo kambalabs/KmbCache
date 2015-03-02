@@ -79,7 +79,7 @@ class IndexControllerTest extends AbstractHttpControllerTestCase
                     'node7.local' => '3:02 hours',
                     'node8.local' => '0:23 hours',
                 ],
-            ], $this->cacheStorage->getItem(CacheManager::KEY_NODE_STATISTICS)
+            ], unserialize($this->cacheStorage->getItem(CacheManager::KEY_NODE_STATISTICS))
         );
     }
 
