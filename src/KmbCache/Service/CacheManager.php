@@ -91,7 +91,7 @@ class CacheManager implements CacheManagerInterface
     public function getNodeStatistics($query = null)
     {
         $this->refreshNodeStatisticsIfExpired($query);
-        return $this->cacheStorage->getItem(static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query));
+        return unserialize($this->cacheStorage->getItem(static::KEY_NODE_STATISTICS . $this->getQuerySuffixBuilder()->build($query)));
     }
 
     /**
@@ -110,7 +110,7 @@ class CacheManager implements CacheManagerInterface
     public function getAvailablePuppetModules()
     {
         $this->refreshAvailablePuppetModulesIfExpired();
-        return $this->cacheStorage->getItem(static::KEY_AVAILABLE_PUPPET_MODULES);
+        return unserialize($this->cacheStorage->getItem(static::KEY_AVAILABLE_PUPPET_MODULES));
     }
 
     /**
@@ -134,7 +134,7 @@ class CacheManager implements CacheManagerInterface
     public function getInstallablePuppetModules($environment = null)
     {
         $this->refreshInstallablePuppetModulesIfExpired($environment);
-        return $this->cacheStorage->getItem(static::KEY_INSTALLABLE_PUPPET_MODULES . $environment->getNormalizedName());
+        return unserialize($this->cacheStorage->getItem(static::KEY_INSTALLABLE_PUPPET_MODULES . $environment->getNormalizedName()));
     }
 
     /**
@@ -158,7 +158,7 @@ class CacheManager implements CacheManagerInterface
     public function getInstalledPuppetModules($environment = null)
     {
         $this->refreshInstalledPuppetModulesIfExpired($environment);
-        return $this->cacheStorage->getItem(static::KEY_INSTALLED_PUPPET_MODULES . $environment->getNormalizedName());
+        return unserialize($this->cacheStorage->getItem(static::KEY_INSTALLED_PUPPET_MODULES . $environment->getNormalizedName()));
     }
 
     /**
@@ -421,7 +421,7 @@ class CacheManager implements CacheManagerInterface
     protected function refresh($key, $getRealDataCallback)
     {
         $status = $this->cacheStorage->getItem($this->statusKeyFor($key));
-        $refreshedAt = $this->cacheStorage->getItem($this->refreshedAtKeyFor($key));
+        $refreshedAt = unserialize($this->cacheStorage->getItem($this->refreshedAtKeyFor($key)));
         if (
             $status !== static::PENDING &&
             (
@@ -432,9 +432,9 @@ class CacheManager implements CacheManagerInterface
             $this->logger->debug("Refreshing cache for $key ...");
             $this->cacheStorage->setItem($this->statusKeyFor($key), static::PENDING);
             $data = $getRealDataCallback();
-            $this->cacheStorage->setItem($key, $data);
+            $this->cacheStorage->setItem($key, serialize($data));
             $this->cacheStorage->setItem($this->statusKeyFor($key), static::COMPLETED);
-            $this->cacheStorage->setItem($this->refreshedAtKeyFor($key), $this->getDateTimeFactory()->now());
+            $this->cacheStorage->setItem($this->refreshedAtKeyFor($key), serialize($this->getDateTimeFactory()->now()));
             $this->logger->debug("Cache for $key has been refreshed !");
             return true;
         }
