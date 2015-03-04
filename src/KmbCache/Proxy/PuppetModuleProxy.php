@@ -72,10 +72,10 @@ class PuppetModuleProxy implements PuppetModuleInterface
      */
     public function installInEnvironment(KmbDomain\Model\EnvironmentInterface $environment, KmbPmProxy\Model\PuppetModule $module, $version)
     {
-        $this->availableModulesCacheManager->forceRefreshCache($environment);
+        $this->moduleService->installInEnvironment($environment, $module, $version);
+        $this->availableModulesCacheManager->forceRefreshCache();
         $this->installableModulesCacheManager->forceRefreshCache($environment);
         $this->installedModulesCacheManager->forceRefreshCache($environment);
-        $this->moduleService->installInEnvironment($environment, $module, $version);
     }
 
     /**
@@ -84,10 +84,10 @@ class PuppetModuleProxy implements PuppetModuleInterface
      */
     public function removeFromEnvironment(KmbDomain\Model\EnvironmentInterface $environment, KmbPmProxy\Model\PuppetModule $module)
     {
-        $this->availableModulesCacheManager->forceRefreshCache($environment);
+        $this->moduleService->removeFromEnvironment($environment, $module);
+        $this->availableModulesCacheManager->forceRefreshCache();
         $this->installableModulesCacheManager->forceRefreshCache($environment);
         $this->installedModulesCacheManager->forceRefreshCache($environment);
-        $this->moduleService->removeFromEnvironment($environment, $module);
     }
 
     /**
