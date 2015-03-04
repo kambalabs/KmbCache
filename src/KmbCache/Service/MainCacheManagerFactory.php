@@ -56,7 +56,6 @@ class MainCacheManagerFactory implements FactoryInterface
                         if ($cacheManager->getDataContextBuilder() == null) {
                             $cacheManager->setDataContextBuilder(new DefaultDataContextBuilder());
                         }
-                        $logger->debug("Add cache manager $key");
                         $mainCacheManager->addCacheManager($key, $cacheManager);
                     } else {
                         $logger->warn("Invalid configuration for cache manager $key : service should extends KmbCache\\Service\\AbstractCacheManager");
