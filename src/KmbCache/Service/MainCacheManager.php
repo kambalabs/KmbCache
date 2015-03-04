@@ -38,7 +38,7 @@ class MainCacheManager
     {
         $hasBeenRefreshed = false;
         foreach ($this->cacheManagers as $cacheManager) {
-            $hasBeenRefreshed = $hasBeenRefreshed || $cacheManager->refreshExpiredCache($environment, $forceRefresh);
+            $hasBeenRefreshed =  $cacheManager->refreshExpiredCache($environment, $forceRefresh) || $hasBeenRefreshed;
         }
         return $hasBeenRefreshed;
     }
