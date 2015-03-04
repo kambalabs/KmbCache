@@ -17,7 +17,7 @@ $(window).load(function () {
 
     setTimeout(refreshExpiredCache, 5000);
 
-    $('#clear-cache').click(function () {
-        $.getJSON(prefixUri + '/cache/clear');
+    $('#refresh-cache').click(function () {
+        $.getJSON(prefixUri + '/cache/refresh');
     });
 });

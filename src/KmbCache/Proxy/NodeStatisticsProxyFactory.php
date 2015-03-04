@@ -20,7 +20,6 @@
  */
 namespace KmbCache\Proxy;
 
-use KmbCache\Service\CacheManagerInterface;
 use KmbCache\Service\MainCacheManager;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
