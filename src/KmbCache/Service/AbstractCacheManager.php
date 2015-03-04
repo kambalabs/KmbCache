@@ -67,8 +67,11 @@ abstract class AbstractCacheManager implements CacheManagerInterface
      */
     public function getData($context = null)
     {
-        $this->refreshExpiredCacheForContext($context);
-        return unserialize($this->cacheStorage->getItem($this->getKey($context)));
+        $key = $this->getKey($context);
+        if (!$this->cacheStorage->hasItem($key)) {
+            $this->refreshExpiredCacheForContext($context);
+        }
+        return unserialize($this->cacheStorage->getItem($key));
     }
 
     /**
