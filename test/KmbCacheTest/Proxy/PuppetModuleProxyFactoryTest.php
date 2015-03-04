@@ -12,9 +12,9 @@ class PuppetModuleProxyFactoryTest extends \PHPUnit_Framework_TestCase
         $service = Bootstrap::getServiceManager()->get('pmProxyPuppetModuleService');
 
         $this->assertInstanceOf('KmbCache\Proxy\PuppetModuleProxy', $service);
-        $this->assertInstanceOf('KmbCache\Service\AvailablePuppetModuleCacheManager', $service->getAvailableModulesCacheManager());
-        $this->assertInstanceOf('KmbCache\Service\InstallablePuppetModuleCacheManager', $service->getInstallableModulesCacheManager());
-        $this->assertInstanceOf('KmbCache\Service\InstalledPuppetModuleCacheManager', $service->getInstalledModulesCacheManager());
+        $this->assertInstanceOf('KmbCacheTest\Service\FakeCacheManager', $service->getAvailableModulesCacheManager());
+        $this->assertInstanceOf('KmbCacheTest\Service\FakeCacheManager', $service->getInstallableModulesCacheManager());
+        $this->assertInstanceOf('KmbCacheTest\Service\FakeCacheManager', $service->getInstalledModulesCacheManager());
         $this->assertInstanceOf('KmbPmProxy\Service\PuppetModule', $service->getModuleService());
     }
 }

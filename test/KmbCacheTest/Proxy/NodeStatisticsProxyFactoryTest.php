@@ -13,6 +13,6 @@ class NodeStatisticsProxyFactoryTest extends \PHPUnit_Framework_TestCase
         $service = Bootstrap::getServiceManager()->get('nodeStatisticsService');
 
         $this->assertInstanceOf('KmbCache\Proxy\NodeStatisticsProxy', $service);
-        $this->assertInstanceOf('KmbCache\Service\NodeStatisticsCacheManager', $service->getCacheManager());
+        $this->assertInstanceOf('KmbCacheTest\Service\FakeCacheManager', $service->getCacheManager());
     }
 }
