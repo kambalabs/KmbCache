@@ -49,6 +49,12 @@ return [
             'KmbCache\Service\AvailablePuppetModuleCacheManager' => 'KmbCache\Service\AvailablePuppetModuleCacheManagerFactory',
             'KmbCache\Service\InstallablePuppetModuleCacheManager' => 'KmbCache\Service\InstallablePuppetModuleCacheManagerFactory',
             'KmbCache\Service\InstalledPuppetModuleCacheManager' => 'KmbCache\Service\InstalledPuppetModuleCacheManagerFactory',
+            'KmbCache\Proxy\NodeStatisticsProxy' => 'KmbCache\Proxy\NodeStatisticsProxyFactory',
+            'KmbCache\Proxy\PuppetModuleProxy' => 'KmbCache\Proxy\PuppetModuleProxyFactory',
+        ],
+        'aliases' => [
+            'nodeStatisticsService' => 'KmbCache\Proxy\NodeStatisticsProxy',
+            'pmProxyPuppetModuleService' => 'KmbCache\Proxy\PuppetModuleProxy',
         ],
     ],
     'zfc_rbac' => [
