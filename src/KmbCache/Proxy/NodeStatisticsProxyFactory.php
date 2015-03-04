@@ -21,6 +21,7 @@
 namespace KmbCache\Proxy;
 
 use KmbCache\Service\CacheManagerInterface;
+use KmbCache\Service\MainCacheManager;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
@@ -36,9 +37,9 @@ class NodeStatisticsProxyFactory implements FactoryInterface
     {
         $service = new NodeStatisticsProxy();
 
-        /** @var CacheManagerInterface $cacheManager */
-        $cacheManager = $serviceLocator->get('KmbCache\Service\NodeStatisticsCacheManager');
-        $service->setCacheManager($cacheManager);
+        /** @var MainCacheManager $mainCacheManager */
+        $mainCacheManager = $serviceLocator->get('KmbCache\Service\MainCacheManager');
+        $service->setCacheManager($mainCacheManager->getCacheManager('nodeStatistics'));
 
         return $service;
     }

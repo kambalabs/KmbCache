@@ -21,6 +21,7 @@
 namespace KmbCache\Proxy;
 
 use KmbCache\Service\CacheManagerInterface;
+use KmbCache\Service\MainCacheManager;
 use KmbPmProxy\Service\PuppetModule;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
@@ -37,17 +38,11 @@ class PuppetModuleProxyFactory implements FactoryInterface
     {
         $proxy = new PuppetModuleProxy();
 
-        /** @var CacheManagerInterface $availableModulesCacheManager */
-        $availableModulesCacheManager = $serviceLocator->get('KmbCache\Service\AvailablePuppetModuleCacheManager');
-        $proxy->setAvailableModulesCacheManager($availableModulesCacheManager);
-
-        /** @var CacheManagerInterface $installableModulesCacheManager */
-        $installableModulesCacheManager = $serviceLocator->get('KmbCache\Service\InstallablePuppetModuleCacheManager');
-        $proxy->setInstallableModulesCacheManager($installableModulesCacheManager);
-
-        /** @var CacheManagerInterface $installedModulesCacheManager */
-        $installedModulesCacheManager = $serviceLocator->get('KmbCache\Service\InstalledPuppetModuleCacheManager');
-        $proxy->setInstalledModulesCacheManager($installedModulesCacheManager);
+        /** @var MainCacheManager $mainCacheManager */
+        $mainCacheManager = $serviceLocator->get('KmbCache\Service\MainCacheManager');
+        $proxy->setAvailableModulesCacheManager($mainCacheManager->getCacheManager('availableModules'));
+        $proxy->setInstallableModulesCacheManager($mainCacheManager->getCacheManager('installableModules'));
+        $proxy->setInstalledModulesCacheManager($mainCacheManager->getCacheManager('installedModules'));
 
         /** @var PuppetModule $moduleService */
         $moduleService = $serviceLocator->get('KmbPmProxy\Service\PuppetModule');
