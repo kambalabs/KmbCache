@@ -63,6 +63,7 @@ return [
     'controller_plugins' => [
         'factories' => [
             'translate' => 'KmbBaseTest\Controller\Plugin\FakeTranslateFactory',
+            'translatePlural' => 'KmbBaseTest\Controller\Plugin\FakeTranslatePluralFactory',
         ],
     ],
     'service_manager' => [
